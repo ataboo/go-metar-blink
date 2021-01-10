@@ -1,0 +1,10 @@
+{
+    "station_ids": [
+        "CYYC",
+        "CYEG"
+    ],
+    "client_strategy": "AviationWeather",
+    "windy_threshold_kts": 10.0,
+    "update_period_mins": 15
+}
+    

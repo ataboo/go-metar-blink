@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:noNamespaceSchemaLocation="http://www.aviationweather.gov/static/adds/schema/metar1_2.xsd">
+    <request_index>434744373</request_index>
+    <data_source name="metars" />
+    <request type="retrieve" />
+    <errors />
+    <warnings />
+    <time_taken_ms>6</time_taken_ms>
+    <data num_results="2">
+        <METAR>
+            <station_id>CYEG</station_id>
+            <observation_time>2021-01-10T07:00:00Z</observation_time>
+            <wind_speed_kt>8</wind_speed_kt>
+            <flight_category>VFR</flight_category>
+        </METAR>
+        <METAR>
+            <station_id>CYYC</station_id>
+            <observation_time>2021-01-10T07:00:00Z</observation_time>
+            <wind_speed_kt>3</wind_speed_kt>
+            <flight_category>VFR</flight_category>
+        </METAR>
+    </data>
+</response>
