@@ -9,9 +9,8 @@ const (
 type MetarStrategy string
 
 type Settings struct {
-	StationIDs    []string
-	Strategy      MetarStrategy
-	WindySpeedKts float32
+	StationIDs []string
+	Strategy   MetarStrategy
 }
 
 type MetarResponseHandler func(summaries []*MetarSummary, err error)
@@ -26,10 +25,10 @@ type MetarClient interface {
 	Fetch(handler MetarResponseHandler) error
 }
 
-func InitMetarClient(settings Settings) (MetarClient, error) {
+func InitMetarClient(settings *Settings) (MetarClient, error) {
 	switch settings.Strategy {
 	case AviationWeatherMetarStrategy:
-		return newAviationWeatherClient(settings), nil
+		return newAviationWeatherClient(settings, AviationWeatherEndPoint), nil
 	default:
 		return nil, fmt.Errorf("configured metar strategy not supported")
 	}

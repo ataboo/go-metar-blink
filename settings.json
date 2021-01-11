@@ -5,6 +5,9 @@
     ],
     "client_strategy": "AviationWeather",
     "windy_threshold_kts": 10.0,
-    "update_period_mins": 15
+    "update_period_mins": 15,
+    "logging_method": "console",
+    "logging_dir": "/var/tmp/go-metar-blink",
+    "logging_level": "debug"
 }
     

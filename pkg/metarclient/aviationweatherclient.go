@@ -14,6 +14,8 @@ import (
 
 var _ MetarClient = (*aviationWeatherClient)(nil)
 
+const AviationWeatherEndPoint = "https://aviationweather.gov/adds/dataserver_current/httpparam"
+
 type aviationWeatherMetar struct {
 	StationID       string  `xml:"station_id"`
 	ObservationTime string  `xml:"observation_time"`
@@ -26,14 +28,16 @@ type aviationWeatherData struct {
 }
 
 type aviationWeatherClient struct {
-	settings Settings
+	settings *Settings
+	endPoint string
 }
 
-func newAviationWeatherClient(settings Settings) MetarClient {
+func newAviationWeatherClient(settings *Settings, endPoint string) MetarClient {
 	settings.StationIDs = sort.StringSlice(settings.StationIDs)
 
 	return &aviationWeatherClient{
 		settings: settings,
+		endPoint: endPoint,
 	}
 }
 
@@ -49,7 +53,7 @@ func (c *aviationWeatherClient) Fetch(handler MetarResponseHandler) error {
 }
 
 func (c *aviationWeatherClient) buildQueryURL() (*url.URL, error) {
-	u, err := url.Parse("https://aviationweather.gov/adds/dataserver_current/httpparam")
+	u, err := url.Parse(c.endPoint)
 	if err != nil {
 		return nil, err
 	}
