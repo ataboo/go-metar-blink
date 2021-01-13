@@ -1,15 +1,22 @@
 package animation
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestLoopingTrackStepping(t *testing.T) {
-	track := createExampleTrack()
+	track := createExampleTrack(true)
+
+	if !track.IsLooping() {
+		t.Error("unnexpected value")
+	}
 
 	if track.Value() != 50 {
 		t.Error("unnexpected value", track.Value())
 	}
 
-	ok := track.Step()
+	ok := track.Step(1)
 	if !ok {
 		t.Error("expected true response")
 	}
@@ -27,9 +34,9 @@ func TestLoopingTrackStepping(t *testing.T) {
 		t.Error("unnexpected value", track.Value())
 	}
 
-	ok = track.Step()
-	if !ok {
-		t.Error("expected ok")
+	ok = track.Step(1)
+	if !ok || track.position != 0 {
+		t.Error("failed to step")
 	}
 
 	if track.Value() != 50 {
@@ -37,13 +44,49 @@ func TestLoopingTrackStepping(t *testing.T) {
 	}
 }
 
-// func TestNonLoopingTrackValues() {
-// 	// track := createExampleTrack()
+func TestNonLoopingTrackValues(t *testing.T) {
+	track := createExampleTrack(false)
 
-// }
+	if track.IsLooping() {
+		t.Error("unnexpected value")
+	}
+
+	if track.Value() != 20 {
+		t.Error("unnexpected track value", track.Value())
+	}
+
+	track.Step(1)
+	if track.Value() != 20 {
+		t.Error("unnexpected value", track.Value())
+	}
+
+	track.Seek(15)
+	if track.Value() != 40 {
+		t.Error("unnexpected value", track.Value())
+	}
+
+	err := track.Seek(40)
+	if err != nil || track.GetPosition() != 40 {
+		t.Error("failed to set position")
+	}
+
+	if track.Value() != 80 {
+		t.Error("unnexpected value", track.Value())
+	}
+
+	track.Seek(49)
+	if track.Value() != 80 {
+		t.Error("unnexpected error", track.Value())
+	}
+
+	ok := track.Step(1)
+	if ok || track.position != 49 {
+		t.Error("failed to not step")
+	}
+}
 
 func TestTrackSeek(t *testing.T) {
-	track := createExampleTrack()
+	track := createExampleTrack(true)
 
 	err := track.Seek(-1)
 	if err == nil {
@@ -74,7 +117,118 @@ func TestTrackSeek(t *testing.T) {
 	}
 }
 
-func createExampleTrack() Track {
+func TestNormalizeShortKeyFrames(t *testing.T) {
+	track, err := CreateTrack(16, true, []KeyFrame{
+		{0, 5},
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(track.keyFrames) != 2 {
+		t.Error("failed to make end key frame")
+	}
+
+	if track.keyFrames[0].Position != 0 || track.keyFrames[0].Value != 5 {
+		t.Error("unnexpected initial keyframe")
+	}
+
+	if track.keyFrames[1].Position != 15 || track.keyFrames[1].Value != 5 {
+		t.Error("unnexpected final keyframe")
+	}
+
+	err = track.SetKeyFrames([]KeyFrame{}, 16, true)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(track.keyFrames) != 2 {
+		t.Error("failed to make keyframes")
+	}
+
+	if track.keyFrames[0].Position != 0 || track.keyFrames[0].Value != 0 {
+		t.Error("unnexpected initial keyframe")
+	}
+
+	if track.keyFrames[1].Position != 15 || track.keyFrames[1].Value != 0 {
+		t.Error("unnexpected final keyframe")
+	}
+}
+
+func TestKeyFramesWithSamePositionRejected(t *testing.T) {
+	_, err := CreateTrack(10, true, []KeyFrame{
+		{5, 5},
+		{5, 10},
+	})
+
+	if err == nil {
+		t.Error("expected error")
+	}
+}
+
+func TestPanicIfLerpSameFrame(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic")
+		}
+	}()
+
+	track := Track{
+		looping:  true,
+		position: 0,
+		length:   10,
+	}
+
+	track.lerpFrameValues(KeyFrame{5, 0}, KeyFrame{5, 5}, 0)
+}
+
+func TestTrackPanicsWithNonNormalizedKeyframes(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic")
+		}
+	}()
+
+	track := Track{
+		keyFrames: []KeyFrame{{1, 2}},
+	}
+
+	track.Value()
+}
+
+func TestSetLength(t *testing.T) {
+	_, err := CreateTrack(-1, true, []KeyFrame{})
+	if err == nil {
+		t.Error(errors.New("expected error"))
+	}
+
+	track, err := CreateTrack(10, true, []KeyFrame{})
+	if err != nil {
+		t.Error(err)
+	}
+
+	if track.GetLength() != 10 {
+		t.Error("unnexpected length")
+	}
+
+	err = track.SetLength(-1)
+	if err == nil {
+		t.Error(errors.New("expected error"))
+	}
+
+	track.Seek(9)
+
+	err = track.SetLength(5)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if track.position != 4 {
+		t.Error("unnexpected position")
+	}
+}
+
+func createExampleTrack(looping bool) *Track {
 	keyFrames := []KeyFrame{
 		{
 			Position: 10,
@@ -94,12 +248,7 @@ func createExampleTrack() Track {
 		},
 	}
 
-	track := Track{
-		Looping:    true,
-		ChannelIDs: []int{},
-	}
-
-	track.SetKeyFrames(keyFrames, 50)
+	track, _ := CreateTrack(50, looping, keyFrames)
 
 	return track
 }

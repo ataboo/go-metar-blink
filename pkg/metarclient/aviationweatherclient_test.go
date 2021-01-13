@@ -13,7 +13,7 @@ import (
 )
 
 func TestAviationWeatherUrlBuilding(t *testing.T) {
-	client, err := InitMetarClient(&Settings{
+	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CYEG", "CYYC"},
 		Strategy:   AviationWeatherMetarStrategy,
 	})
@@ -35,7 +35,7 @@ func TestAviationWeatherUrlBuilding(t *testing.T) {
 }
 
 func TestAviationWeatherParseResponse(t *testing.T) {
-	client, err := InitMetarClient(&Settings{
+	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CYEG", "CYYC"},
 		Strategy:   AviationWeatherMetarStrategy,
 	})
@@ -87,7 +87,7 @@ func TestAviationWeatherParseResponse(t *testing.T) {
 func TestAviationWeatherParseResponseWrongStations(t *testing.T) {
 	_ = common.InitLoggersToTestWriter()
 
-	client, err := InitMetarClient(&Settings{
+	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CABC"},
 		Strategy:   AviationWeatherMetarStrategy,
 	})

@@ -12,7 +12,7 @@ func main() {
 
 	common.LogInfo("[1.1] Initializing client")
 	common.DumpSettingsInfo()
-	_, err := metarclient.InitMetarClient(&metarclient.Settings{
+	_, err := metarclient.CreateMetarClient(&metarclient.Settings{
 		StationIDs: appSettings.StationIDs,
 		Strategy:   metarclient.MetarStrategy(appSettings.ClientStrategy),
 	})

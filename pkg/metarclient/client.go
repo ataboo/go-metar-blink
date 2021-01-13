@@ -25,7 +25,7 @@ type MetarClient interface {
 	Fetch(handler MetarResponseHandler) error
 }
 
-func InitMetarClient(settings *Settings) (MetarClient, error) {
+func CreateMetarClient(settings *Settings) (MetarClient, error) {
 	switch settings.Strategy {
 	case AviationWeatherMetarStrategy:
 		return newAviationWeatherClient(settings, AviationWeatherEndPoint), nil
