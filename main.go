@@ -12,7 +12,7 @@ func main() {
 
 	common.LogInfo("[1.1] Initializing client")
 	common.DumpSettingsInfo()
-	_, err := metarclient.CreateMetarClient(&metarclient.Settings{
+	client, err := metarclient.CreateMetarClient(&metarclient.Settings{
 		StationIDs: appSettings.StationIDs,
 		Strategy:   metarclient.MetarStrategy(appSettings.ClientStrategy),
 	})
@@ -20,7 +20,7 @@ func main() {
 		common.LogError("Failed to start client: %s", err.Error())
 	}
 
-	common.LogInfo("Hello!")
+	// visualization.ShowMap()
 
 	os.Exit(0)
 }

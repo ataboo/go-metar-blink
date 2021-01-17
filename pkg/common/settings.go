@@ -1,11 +1,12 @@
 package common
 
 import (
-	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"path"
 	"strings"
+
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
 type AppSettings struct {
@@ -52,10 +53,25 @@ func mustLoadAppSettings() {
 	}
 
 	_appSettings = &AppSettings{}
-	err = json.Unmarshal(settingsRaw, &_appSettings)
+	err = json5.Unmarshal(settingsRaw, &_appSettings)
 	if err != nil {
 		panic("failed to parse 'settings.json': " + err.Error())
 	}
 
 	CurrentLogLevel = MustParseLogLevel(_appSettings.LoggingLevel)
+
+	validateStationIds()
+}
+
+func validateStationIds() {
+	keyMap := make(map[string]bool)
+	for _, id := range _appSettings.StationIDs {
+		if _, ok := keyMap[id]; ok {
+			LogWarn("station '%s' is found more than once in settings", id)
+		}
+
+		keyMap[id] = true
+	}
+
+	LogInfo("loaded %d stations", len(_appSettings.StationIDs))
 }

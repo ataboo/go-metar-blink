@@ -23,7 +23,7 @@ func TestAviationWeatherUrlBuilding(t *testing.T) {
 
 	aviationClient := client.(*aviationWeatherClient)
 
-	endPoint, err := aviationClient.buildQueryURL()
+	endPoint, err := aviationClient.buildQueryURL(false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -62,24 +62,24 @@ func TestAviationWeatherParseResponse(t *testing.T) {
 
 	response.StatusCode = http.StatusOK
 
-	summaries, err := aviationClient.parseResponse(&response)
+	reports, err := aviationClient.parseResponse(&response)
 	if err != nil {
 		t.Error("expected 404 error")
 	}
 
-	if len(summaries) != 2 {
-		t.Error("unexpected summary count", len(summaries))
+	if len(reports) != 2 {
+		t.Error("unexpected report count", len(reports))
 	}
 
-	if summaries[0].FlightRules != common.FlightRuleVFR {
+	if reports[0].FlightCategory != common.FlightRuleVFR {
 		t.Error("unnexpected flight rules")
 	}
 
-	if summaries[0].StationID != "CYEG" {
+	if reports[0].StationID != "CYEG" {
 		t.Error("unnexpected station ID")
 	}
 
-	if summaries[0].WindSpeedKts != 8 {
+	if reports[0].WindSpeedKts != 8 {
 		t.Error("unnexpected wind speed")
 	}
 }
@@ -110,24 +110,24 @@ func TestAviationWeatherParseResponseWrongStations(t *testing.T) {
 
 	response.StatusCode = http.StatusOK
 
-	summaries, err := aviationClient.parseResponse(&response)
+	reports, err := aviationClient.parseResponse(&response)
 	if err != nil {
 		t.Error("expected 404 error")
 	}
 
-	if len(summaries) != 1 {
-		t.Error("unexpected summary count", len(summaries))
+	if len(reports) != 1 {
+		t.Error("unexpected report count", len(reports))
 	}
 
-	if summaries[0].FlightRules != common.FlightRuleError {
+	if reports[0].FlightCategory != common.FlightRuleError {
 		t.Error("unnexpected flight rules")
 	}
 
-	if summaries[0].StationID != "CABC" {
+	if reports[0].StationID != "CABC" {
 		t.Error("unnexpected station ID")
 	}
 
-	if summaries[0].WindSpeedKts != 0 {
+	if reports[0].WindSpeedKts != 0 {
 		t.Error("unnexpected wind speed")
 	}
 }
@@ -151,7 +151,7 @@ func TestClientFetchIntegrated(t *testing.T) {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		expectedQuery, _ := client.buildQueryURL()
+		expectedQuery, _ := client.buildQueryURL(false)
 		if expectedQuery.RawQuery != r.URL.RawQuery {
 			t.Error("Query mismatch: ", expectedQuery.RawQuery, r.URL.RawQuery)
 		}
@@ -168,21 +168,21 @@ func TestClientFetchIntegrated(t *testing.T) {
 
 	doneServerChan := make(chan int, 0)
 
-	client.Fetch(func(summaries []*MetarSummary, err error) {
+	client.Fetch(func(reports []*MetarReport, err error) {
 		if err != nil {
 			t.Error(err)
 		}
-		t.Logf("Got %d summaries", len(summaries))
+		t.Logf("Got %d reports", len(reports))
 
-		if len(summaries) != 2 {
-			t.Error("received unnexpected summary count")
+		if len(reports) != 2 {
+			t.Error("received unnexpected report count")
 		}
 
-		if summaries[0].StationID != "CYEG" {
+		if reports[0].StationID != "CYEG" {
 			t.Error("unnexpected first station id")
 		}
 
-		if summaries[1].StationID != "CYYC" {
+		if reports[1].StationID != "CYYC" {
 			t.Error("unnexpected second station id")
 		}
 
