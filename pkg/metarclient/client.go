@@ -20,7 +20,7 @@ type MetarReport struct {
 	StationID       string
 	ObservationTime string
 	FlightRules     string
-	WindSpeedKts    float32
+	WindSpeedKts    float64
 }
 
 type MetarPosition struct {
@@ -31,8 +31,10 @@ type MetarPosition struct {
 }
 
 type MetarClient interface {
-	Fetch(handler MetarResponseHandler) error
-	GetStationPositions(handler MetarPositionResponseHandler) error
+	GetReports() (reports []*MetarReport, err error)
+	GetStationPositions() (positions []*MetarPosition, err error)
+	Fetch(handler MetarResponseHandler)
+	FetchStationPositions(handler MetarPositionResponseHandler)
 }
 
 func CreateMetarClient(settings *Settings) (MetarClient, error) {

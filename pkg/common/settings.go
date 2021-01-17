@@ -17,6 +17,7 @@ type AppSettings struct {
 	LoggingDir        string   `json:"logging_dir"`
 	LoggingMethod     string   `json:"logging_method"`
 	LoggingLevel      string   `json:"logging_level"`
+	CacheDir          string   `json:"cache_dir"`
 }
 
 var _appSettings *AppSettings
