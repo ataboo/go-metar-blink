@@ -1,0 +1,342 @@
+{
+	"CBBC": {
+		"Latitude": 52.18,
+		"Longitude": -128.15,
+		"Altitude": 36
+	},
+	"CWAE": {
+		"Latitude": 50.13,
+		"Longitude": -122.95,
+		"Altitude": 658
+	},
+	"CWHN": {
+		"Latitude": 54.9,
+		"Longitude": -109.97,
+		"Altitude": 635
+	},
+	"CWLY": {
+		"Latitude": 50.22,
+		"Longitude": -121.58,
+		"Altitude": 228
+	},
+	"CYAZ": {
+		"Latitude": 49.08,
+		"Longitude": -125.77,
+		"Altitude": 26
+	},
+	"CYBD": {
+		"Latitude": 52.38,
+		"Longitude": -126.58,
+		"Altitude": 40
+	},
+	"CYBL": {
+		"Latitude": 49.95,
+		"Longitude": -125.27,
+		"Altitude": 94
+	},
+	"CYBQ": {
+		"Latitude": 58.7,
+		"Longitude": -98.5,
+		"Altitude": 272
+	},
+	"CYBR": {
+		"Latitude": 49.92,
+		"Longitude": -99.95,
+		"Altitude": 405
+	},
+	"CYBU": {
+		"Latitude": 53.32,
+		"Longitude": -104,
+		"Altitude": 369
+	},
+	"CYBV": {
+		"Latitude": 52.36,
+		"Longitude": -97.0183,
+		"Altitude": 222
+	},
+	"CYCG": {
+		"Latitude": 49.28,
+		"Longitude": -117.63,
+		"Altitude": 487
+	},
+	"CYCP": {
+		"Latitude": 52.13,
+		"Longitude": -119.28,
+		"Altitude": 677
+	},
+	"CYDL": {
+		"Latitude": 58.42,
+		"Longitude": -130.02,
+		"Altitude": 804
+	},
+	"CYDN": {
+		"Latitude": 51.1,
+		"Longitude": -100.05,
+		"Altitude": 302
+	},
+	"CYDQ": {
+		"Latitude": 55.75,
+		"Longitude": -120.18,
+		"Altitude": 658
+	},
+	"CYEG": {
+		"Latitude": 53.3,
+		"Longitude": -113.58,
+		"Altitude": 710
+	},
+	"CYEN": {
+		"Latitude": 49.22,
+		"Longitude": -102.97,
+		"Altitude": 580
+	},
+	"CYET": {
+		"Latitude": 53.57,
+		"Longitude": -116.47,
+		"Altitude": 925
+	},
+	"CYFO": {
+		"Latitude": 54.67,
+		"Longitude": -101.67,
+		"Altitude": 303
+	},
+	"CYGX": {
+		"Latitude": 56.35,
+		"Longitude": -94.7,
+		"Altitude": 145
+	},
+	"CYHE": {
+		"Latitude": 49.37,
+		"Longitude": -121.5,
+		"Altitude": 43
+	},
+	"CYKA": {
+		"Latitude": 50.7,
+		"Longitude": -120.45,
+		"Altitude": 344
+	},
+	"CYKJ": {
+		"Latitude": 57.25,
+		"Longitude": -105.62,
+		"Altitude": 519
+	},
+	"CYKY": {
+		"Latitude": 51.52,
+		"Longitude": -109.17,
+		"Altitude": 692
+	},
+	"CYLJ": {
+		"Latitude": 54.12,
+		"Longitude": -108.52,
+		"Altitude": 481
+	},
+	"CYLL": {
+		"Latitude": 53.32,
+		"Longitude": -110.07,
+		"Altitude": 664
+	},
+	"CYMJ": {
+		"Latitude": 50.33,
+		"Longitude": -105.56,
+		"Altitude": 577
+	},
+	"CYMM": {
+		"Latitude": 56.65,
+		"Longitude": -111.22,
+		"Altitude": 371
+	},
+	"CYOJ": {
+		"Latitude": 58.62,
+		"Longitude": -117.17,
+		"Altitude": 339
+	},
+	"CYPA": {
+		"Latitude": 53.22,
+		"Longitude": -105.67,
+		"Altitude": 428
+	},
+	"CYPE": {
+		"Latitude": 56.22,
+		"Longitude": -117.45,
+		"Altitude": 572
+	},
+	"CYPG": {
+		"Latitude": 49.90,
+		"Longitude": -98.27,
+		"Altitude": 269
+	},
+	"CYPR": {
+		"Latitude": 54.28,
+		"Longitude": -130.45,
+		"Altitude": 30
+	},
+	"CYPY": {
+		"Latitude": 58.77,
+		"Longitude": -111.12,
+		"Altitude": 225
+	},
+	"CYQD": {
+		"Latitude": 53.97,
+		"Longitude": -101.08,
+		"Altitude": 268
+	},
+	"CYQF": {
+		"Latitude": 52.17,
+		"Longitude": -113.9,
+		"Altitude": 912
+	},
+	"CYQL": {
+		"Latitude": 49.63,
+		"Longitude": -112.8,
+		"Altitude": 923
+	},
+	"CYQR": {
+		"Latitude": 50.43,
+		"Longitude": -104.67,
+		"Altitude": 576
+	},
+	"CYQU": {
+		"Latitude": 55.18,
+		"Longitude": -118.88,
+		"Altitude": 668
+	},
+	"CYQV": {
+		"Latitude": 51.27,
+		"Longitude": -102.47,
+		"Altitude": 493
+	},
+	"CYQY": {
+		"Latitude": 46.17,
+		"Longitude": -60.03,
+		"Altitude": 58
+	},
+	"CYRV": {
+		"Latitude": 50.97,
+		"Longitude": -118.17,
+		"Altitude": 456
+	},
+	"CYSF": {
+		"Latitude": 59.25,
+		"Longitude": -105.83,
+		"Altitude": 238
+	},
+	"CYTH": {
+		"Latitude": 55.8,
+		"Longitude": -97.83,
+		"Altitude": 212
+	},
+	"CYVC": {
+		"Latitude": 55.15,
+		"Longitude": -105.27,
+		"Altitude": 378
+	},
+	"CYVR": {
+		"Latitude": 49.17,
+		"Longitude": -123.17,
+		"Altitude": 2
+	},
+	"CYVT": {
+		"Latitude": 55.83,
+		"Longitude": -108.42,
+		"Altitude": 438
+	},
+	"CYWG": {
+		"Latitude": 49.9,
+		"Longitude": -97.23,
+		"Altitude": 238
+	},
+	"CYWL": {
+		"Latitude": 52.18,
+		"Longitude": -122.07,
+		"Altitude": 942
+	},
+	"CYXC": {
+		"Latitude": 49.6,
+		"Longitude": -115.78,
+		"Altitude": 928
+	},
+	"CYXE": {
+		"Latitude": 52.17,
+		"Longitude": -106.7,
+		"Altitude": 504
+	},
+	"CYXH": {
+		"Latitude": 50.02,
+		"Longitude": -110.72,
+		"Altitude": 717
+	},
+	"CYXJ": {
+		"Latitude": 56.25,
+		"Longitude": -120.73,
+		"Altitude": 700
+	},
+	"CYXS": {
+		"Latitude": 53.88,
+		"Longitude": -122.68,
+		"Altitude": 685
+	},
+	"CYXT": {
+		"Latitude": 54.47,
+		"Longitude": -128.57,
+		"Altitude": 213
+	},
+	"CYXX": {
+		"Latitude": 49.03,
+		"Longitude": -122.38,
+		"Altitude": 54
+	},
+	"CYYC": {
+		"Latitude": 51.12,
+		"Longitude": -114.02,
+		"Altitude": 1085
+	},
+	"CYYD": {
+		"Latitude": 54.82,
+		"Longitude": -127.18,
+		"Altitude": 527
+	},
+	"CYYE": {
+		"Latitude": 58.83,
+		"Longitude": -122.58,
+		"Altitude": 379
+	},
+	"CYYJ": {
+		"Latitude": 48.63,
+		"Longitude": -123.42,
+		"Altitude": 16
+	},
+	"CYYN": {
+		"Latitude": 50.28,
+		"Longitude": -107.68,
+		"Altitude": 814
+	},
+	"CYYQ": {
+		"Latitude": 58.75,
+		"Longitude": -94.07,
+		"Altitude": 20
+	},
+	"CYZH": {
+		"Latitude": 55.28,
+		"Longitude": -114.77,
+		"Altitude": 583
+	},
+	"CYZP": {
+		"Latitude": 53.25,
+		"Longitude": -131.82,
+		"Altitude": 7
+	},
+	"CYZU": {
+		"Latitude": 54.15,
+		"Longitude": -115.78,
+		"Altitude": 785
+	},
+	"CYZY": {
+		"Latitude": 55.3,
+		"Longitude": -123.13,
+		"Altitude": 694
+	},
+	"CZMT": {
+		"Latitude": 54.03,
+		"Longitude": -132.13,
+		"Altitude": 11
+	}
+}

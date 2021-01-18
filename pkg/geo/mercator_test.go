@@ -8,7 +8,7 @@ import (
 )
 
 func TestZeroedMercatorProjection(t *testing.T) {
-	spec := MercatorSpec{
+	spec := &MercatorSpec{
 		LatCenter:  0,
 		LongCenter: 0,
 	}
@@ -49,7 +49,7 @@ func TestNormalizeAngle(t *testing.T) {
 }
 
 func TestOffsetMercatorProjection(t *testing.T) {
-	spec := MercatorSpec{
+	spec := &MercatorSpec{
 		LatCenter:  20,
 		LongCenter: -140,
 	}
@@ -72,7 +72,7 @@ func TestOffsetMercatorProjection(t *testing.T) {
 	}
 }
 
-func assertMercatorPos(coord Coordinate, spec MercatorSpec, t *testing.T, latExpected, longExpected float64) {
+func assertMercatorPos(coord Coordinate, spec *MercatorSpec, t *testing.T, latExpected, longExpected float64) {
 	latRads, longRads := coord.MercatorPosition(spec)
 
 	if !common.Similar(latRads, latExpected) || !common.Similar(longRads, longExpected) {

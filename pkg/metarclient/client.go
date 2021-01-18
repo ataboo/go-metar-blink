@@ -17,6 +17,7 @@ type MetarResponseHandler func(reports []*MetarReport, err error)
 type MetarPositionResponseHandler func(positions []*MetarPosition, err error)
 
 type MetarReport struct {
+	Error           bool
 	StationID       string
 	ObservationTime string
 	FlightRules     string
@@ -24,10 +25,11 @@ type MetarReport struct {
 }
 
 type MetarPosition struct {
+	Error     bool
 	StationID string
-	Latitude  string
-	Longitude string
-	Altitude  string
+	Latitude  float64
+	Longitude float64
+	Elevation float64
 }
 
 type MetarClient interface {

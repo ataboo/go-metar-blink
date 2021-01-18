@@ -20,7 +20,7 @@ func LoadCachedFile(fileName string) ([]byte, error) {
 func CacheToFile(fileName string, bytes []byte) error {
 	initFileCache()
 
-	return ioutil.WriteFile(fileName, bytes, CacheFilePermission)
+	return ioutil.WriteFile(path.Join(_appSettings.CacheDir, fileName), bytes, CacheFilePermission)
 }
 
 func initFileCache() {

@@ -28,3 +28,7 @@ func GetProjectRoot() string {
 
 	panic("failed to find project root")
 }
+
+func GetResourcesRoot() string {
+	return path.Join(GetProjectRoot(), "resources")
+}

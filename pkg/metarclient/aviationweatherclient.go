@@ -2,6 +2,7 @@ package metarclient
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,18 +17,21 @@ var _ MetarClient = (*aviationWeatherClient)(nil)
 
 const AviationWeatherEndPoint = "https://aviationweather.gov/adds/dataserver_current/httpparam"
 
+//https://aviationweather.gov/docs/dataserver/schema/metar1_2.xsd
 type aviationWeatherMetar struct {
+	Error           bool
 	StationID       string  `xml:"station_id"`
 	ObservationTime string  `xml:"observation_time"`
 	WindSpeedKts    float64 `xml:"wind_speed_kt"`
 	FlightCategory  string  `xml:"flight_category"`
-	Latitude        string  `xml:"latitude"`
-	Longitude       string  `xml:"longitude"`
-	Altitude        string  `xml:"altitude"`
+	Latitude        float64 `xml:"latitude"`
+	Longitude       float64 `xml:"longitude"`
+	Elevation       float64 `xml:"elevation_m"`
 }
 
 type aviationWeatherData struct {
 	Metars []*aviationWeatherMetar `xml:"data>METAR"`
+	Errors []string                `xml:"errors>error"`
 }
 
 type aviationWeatherClient struct {
@@ -38,7 +42,7 @@ type aviationWeatherClient struct {
 type rawMetarHandler func([]*aviationWeatherMetar, error)
 
 func newAviationWeatherClient(settings *Settings, endPoint string) MetarClient {
-	settings.StationIDs = sort.StringSlice(settings.StationIDs)
+	sort.Strings(settings.StationIDs)
 
 	return &aviationWeatherClient{
 		settings: settings,
@@ -60,6 +64,7 @@ func (c *aviationWeatherClient) GetReports() (reports []*MetarReport, err error)
 	reports = make([]*MetarReport, len(awm))
 	for i, a := range awm {
 		reports[i] = &MetarReport{
+			Error:           a.Error,
 			StationID:       a.StationID,
 			ObservationTime: a.ObservationTime,
 			FlightRules:     a.FlightCategory,
@@ -84,10 +89,11 @@ func (c *aviationWeatherClient) GetStationPositions() (positions []*MetarPositio
 	reports := make([]*MetarPosition, len(awm))
 	for i, a := range awm {
 		reports[i] = &MetarPosition{
+			Error:     a.Error,
 			StationID: a.StationID,
 			Latitude:  a.Latitude,
 			Longitude: a.Longitude,
-			Altitude:  a.Altitude,
+			Elevation: a.Elevation,
 		}
 	}
 
@@ -121,7 +127,7 @@ func (c *aviationWeatherClient) buildQueryURL(getPosition bool) (*url.URL, error
 			"station_id",
 			"latitude",
 			"longitude",
-			"altitude",
+			"elevation_m",
 		}
 	} else {
 		fields = []string{
@@ -168,9 +174,17 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) ([]*aviat
 		return nil, err
 	}
 
+	common.CacheToFile("last_aviation_weather_response.xml", responseBytes)
+
 	err = xml.Unmarshal(responseBytes, &data)
 	if err != nil {
+		common.LogError("failed to parse aviation weather response")
 		return nil, err
+	}
+
+	if len(data.Errors) > 0 {
+		common.LogError("errors from aviation weather: %s", strings.Join(data.Errors, ", "))
+		return nil, errors.New("received errors from aviation weather")
 	}
 
 	sort.Slice(data.Metars, func(i int, j int) bool {
@@ -194,13 +208,22 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) ([]*aviat
 				matched = true
 				break
 			} else {
-				common.LogWarn("received data for unnexpected station: %s'\n'", rawMetar.StationID)
-
+				common.LogWarn("received data for unnexpected station: '%s'\n", rawMetar.StationID)
 			}
 		}
 
 		if !matched {
-			common.LogWarn("failed to receive data for station %s'\n'", stationID)
+			common.LogWarn("failed to receive data for station '%s'\n", stationID)
+			data.Metars = append(data.Metars, &aviationWeatherMetar{
+				Error:           true,
+				StationID:       stationID,
+				ObservationTime: "",
+				FlightCategory:  common.FlightRuleError,
+				WindSpeedKts:    0,
+				Latitude:        0,
+				Longitude:       0,
+				Elevation:       0,
+			})
 		}
 	}
 

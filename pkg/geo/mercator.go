@@ -52,15 +52,11 @@ func ParseDecimalCoordinate(latStr, longStr string) (coord *Coordinate, err erro
 	return coord, err
 }
 
-func (c *Coordinate) MercatorPosition(spec MercatorSpec) (latRads float64, longRads float64) {
+func (c *Coordinate) MercatorPosition(spec *MercatorSpec) (latRads float64, longRads float64) {
 	center := spec.Center()
 
-	// (-100 - -180) / (180 - -180) => 80 / 360
-
-	// a * long
 	longRads = common.NormalizePlusMinusPi((c.Longitude - center.Longitude) * DegToRad)
 
-	// a * ln(tan(pi / 4 + lat / 2)
 	latRads = math.Log(math.Tan(math.Pi/4 + DegToRad*(c.Latitude-center.Latitude)/2))
 	return latRads, longRads
 }

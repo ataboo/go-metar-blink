@@ -3,7 +3,6 @@ package stationrepo
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
@@ -21,6 +20,7 @@ type StationRepo struct {
 	coordinates map[string]*geo.Coordinate
 	reports     []*metarclient.MetarReport
 	lastUpdate  time.Time
+	config      *Config
 }
 
 type Station struct {
@@ -30,9 +30,14 @@ type Station struct {
 	Coordinate   *geo.Coordinate
 }
 
-func CreateStationRepo(client metarclient.MetarClient) *StationRepo {
+type Config struct {
+	UpdatePeriod time.Duration
+}
+
+func CreateStationRepo(client metarclient.MetarClient, config *Config) *StationRepo {
 	return &StationRepo{
 		client: client,
+		config: config,
 	}
 }
 
@@ -42,7 +47,7 @@ func (r *StationRepo) GetStations() (stations []*Station, err error) {
 		return nil, err
 	}
 
-	if r.reports == nil || r.lastUpdate.Add(time.Minute*time.Duration(common.GetAppSettings().UpdatePeriodMins)).Before(time.Now()) {
+	if r.reports == nil || r.lastUpdate.Add(r.config.UpdatePeriod).Before(time.Now()) {
 		common.LogInfo("repo fetching fresh reports")
 		reports, err := r.client.GetReports()
 		if err != nil {
@@ -52,13 +57,17 @@ func (r *StationRepo) GetStations() (stations []*Station, err error) {
 		r.reports = reports
 	}
 
-	stations = make([]*Station, len(r.reports))
-	for i, report := range r.reports {
+	stations = make([]*Station, 0, len(stations))
+	for _, report := range r.reports {
+		if report.Error {
+			continue
+		}
+
 		position, ok := r.coordinates[report.StationID]
 		if !ok {
 			return nil, fmt.Errorf("failed to get position matching station '%s'", report.StationID)
 		}
-		stations[i] = &Station{
+		stations = append(stations, &Station{
 			ID:           report.StationID,
 			FlightRules:  report.FlightRules,
 			WindSpeedKts: report.WindSpeedKts,
@@ -67,7 +76,7 @@ func (r *StationRepo) GetStations() (stations []*Station, err error) {
 				Longitude: position.Longitude,
 				Altitude:  position.Altitude,
 			},
-		}
+		})
 	}
 
 	return stations, nil
@@ -79,6 +88,7 @@ func (r *StationRepo) loadCoordinatesIfEmpty() error {
 	}
 
 	if err := r.loadCoordinatesFromCache(); err == nil {
+		common.LogInfo("successfully loaded cached station coordinates")
 		return nil
 	}
 
@@ -96,7 +106,10 @@ func (r *StationRepo) loadCoordinatesIfEmpty() error {
 	err = common.CacheToFile(PositionCacheFileName, bytes)
 	if err != nil {
 		common.LogWarn("failed to save coordinates to cache")
+
 	}
+
+	common.LogInfo("fetched and cached station coordinates")
 
 	return nil
 }
@@ -109,25 +122,10 @@ func (r *StationRepo) loadCoordinatesFromClient() error {
 
 	r.coordinates = make(map[string]*geo.Coordinate)
 	for _, pos := range positions {
-		latFl, err := strconv.ParseFloat(pos.Latitude, 64)
-		if err != nil {
-			common.LogError("failed to parse station %s latitude: '%s'", pos.StationID, pos.Latitude)
-		}
-
-		longFl, err := strconv.ParseFloat(pos.Longitude, 64)
-		if err != nil {
-			common.LogError("failed to parse station %s longitude: '%s'", pos.StationID, pos.Longitude)
-		}
-
-		altFl, err := strconv.ParseFloat(pos.Altitude, 64)
-		if err != nil {
-			common.LogError("failed to parse station %s altitude: '%s'", pos.StationID, pos.Altitude)
-		}
-
 		r.coordinates[pos.StationID] = &geo.Coordinate{
-			Latitude:  latFl,
-			Longitude: longFl,
-			Altitude:  altFl,
+			Latitude:  pos.Latitude,
+			Longitude: pos.Longitude,
+			Altitude:  pos.Elevation,
 		}
 	}
 

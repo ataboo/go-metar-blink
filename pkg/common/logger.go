@@ -70,7 +70,7 @@ func LogDebug(format string, v ...interface{}) {
 	}
 
 	assertLoggersInitialized()
-	debugLogger.Printf(format, v...)
+	debugLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func LogInfo(format string, v ...interface{}) {
@@ -79,7 +79,7 @@ func LogInfo(format string, v ...interface{}) {
 	}
 
 	assertLoggersInitialized()
-	infoLogger.Printf(format, v...)
+	infoLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func LogWarn(format string, v ...interface{}) {
@@ -88,12 +88,12 @@ func LogWarn(format string, v ...interface{}) {
 	}
 
 	assertLoggersInitialized()
-	warningLogger.Printf(format, v...)
+	warningLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func LogError(format string, v ...interface{}) {
 	assertLoggersInitialized()
-	errorLogger.Printf(format, v...)
+	errorLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func assertLoggersInitialized() {

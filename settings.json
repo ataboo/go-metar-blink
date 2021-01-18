@@ -9,10 +9,10 @@
     "station_ids": [
         //MB
         "CYWG",
-        "CYPG",
+        // "CYPG",
         "CYBR",
         "CYDN",
-        "CYBV",
+        // "CYBV",
         "CYQD",
         "CYFO",
         "CYTH",
@@ -22,12 +22,12 @@
         //SK
         "CYEN",
         "CYQR",
-        "CYMJ",
+        // "CYMJ",
         "CYQV",
         "CYYN",
         "CYKY",
         "CYXE",
-        "CYQY",
+        "CYQW",
         "CYPA",
         "CYBU",
         "CYLJ",
