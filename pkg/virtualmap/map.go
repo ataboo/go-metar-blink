@@ -7,98 +7,156 @@ import (
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/geo"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
-	"github.com/tfriedel6/canvas/sdlcanvas"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
 const (
-	PaddingPx     = 20
-	ImageWidthPx  = 1280
-	ImageHeightPx = 720
+	PaddingPx     = 80
+	ImageWidthPx  = 1600
+	ImageHeightPx = 900
 )
 
-func ShowMap(stations []*stationrepo.Station) error {
+type MapQuitError struct{}
 
+func (e *MapQuitError) Error() string { return "this virtual map is no longer running" }
+
+type VirtualMap struct {
+	stations         map[string]*stationrepo.Station
+	renderedIDs      map[string]*sdl.Surface
+	stationIDs       []string
+	window           *sdl.Window
+	windowSurface    *sdl.Surface
+	stationScreenPos map[string]*sdl.Point
+	running          bool
+}
+
+func CreateVirtualMap(stations map[string]*stationrepo.Station) (vMap *VirtualMap, err error) {
 	if len(stations) == 0 {
-		return errors.New("need atleast one station")
+		return nil, errors.New("need at least one station")
 	}
 
-	sdl.Init(sdl.INIT_VIDEO)
+	vMap = &VirtualMap{
+		stations: stations,
+		running:  true,
+	}
+
+	if err := ttf.Init(); err != nil {
+		return nil, err
+	}
+
+	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
+		return nil, err
+	}
+
+	wnd, err := sdl.CreateWindow(
+		"Go Metar Blink",
+		sdl.WINDOWPOS_UNDEFINED,
+		sdl.WINDOWPOS_UNDEFINED,
+		ImageWidthPx,
+		ImageHeightPx,
+		sdl.WINDOW_SHOWN,
+	)
+	if err != nil {
+		return nil, err
+	}
+	vMap.window = wnd
+
+	wndSurface, err := wnd.GetSurface()
+	if err != nil {
+		return nil, err
+	}
+	vMap.windowSurface = wndSurface
+
+	if err := vMap.renderIds(); err != nil {
+		return nil, err
+	}
 
 	coordinates := make([]*geo.Coordinate, len(stations))
-	for i, s := range stations {
-		coordinates[i] = s.Coordinate
+	idx := 0
+	for _, s := range stations {
+		coordinates[idx] = s.Coordinate
+		idx++
 	}
-
 	renderSpec := CreateRenderSpec(coordinates, ImageWidthPx, ImageHeightPx, PaddingPx)
 
-	wnd, cv, err := sdlcanvas.CreateWindow(ImageWidthPx, ImageHeightPx, "Hello")
-	if err != nil {
-		return err
+	vMap.stationScreenPos = make(map[string]*sdl.Point)
+	vMap.stationIDs = make([]string, len(stations))
+	for _, s := range stations {
+		x, y := renderSpec.ProjectCoordinate(s.Coordinate)
+		vMap.stationScreenPos[s.ID] = &sdl.Point{
+			X: int32(x),
+			Y: int32(y),
+		}
+		vMap.stationIDs[s.Ordinal] = s.ID
 	}
-	defer wnd.Destroy()
 
-	wndSurface, err := wnd.Window.GetSurface()
-	if err != nil {
-		return err
-	}
+	return vMap, nil
+}
 
-	var solid *sdl.Surface
+func (m *VirtualMap) renderIds() error {
 	font, err := ttf.OpenFont(path.Join(common.GetResourcesRoot(), "meslo_powerline.ttf"), 16)
-	if err != nil {
-		return err
-	}
 	defer font.Close()
 
-	wnd.MainLoop(func() {
-		w, h := float64(cv.Width()), float64(cv.Height())
-		cv.SetFillStyle("#000")
-		cv.FillRect(0, 0, w, h)
-
-		for _, s := range stations {
-			if solid, err = font.RenderUTF8Solid(s.ID, sdl.Color{255, 0, 0, 255}); err != nil {
-				common.LogError("failed to render font: %s", err)
-				continue
-			}
-
-			x, y := renderSpec.ProjectCoordinate(s.Coordinate)
-
-			solid.Blit(nil, wndSurface, &sdl.Rect{
-				X: int32(x),
-				Y: int32(y),
-				W: 0,
-				H: 0,
-			})
-
+	m.renderedIDs = make(map[string]*sdl.Surface, len(m.stations))
+	for _, s := range m.stations {
+		m.renderedIDs[s.ID], err = font.RenderUTF8Solid(s.ID, sdl.Color{255, 255, 255, 255})
+		if err != nil {
+			return err
 		}
-
-		// for r := 0.0; r < math.Pi*2; r += math.Pi * 0.1 {
-		// 	cv.SetFillStyle(int(r*10), int(r*20), int(r*40))
-		// 	cv.BeginPath()
-		// 	cv.MoveTo(w*0.5, h*0.5)
-		// 	cv.Arc(w*0.5, h*0.5, math.Min(w, h)*0.4, r, r+0.1*math.Pi, false)
-		// 	cv.ClosePath()
-		// 	cv.Fill()
-		// }
-
-		// if step > 100 {
-		// 	cv.SetStrokeStyle("#222")
-		// } else {
-		// 	cv.SetStrokeStyle("#FFF")
-		// }
-
-		// if step > 200 {
-		// 	step = 0
-		// }
-
-		// cv.SetLineWidth(10)
-		// cv.BeginPath()
-		// cv.Arc(w*0.5, h*0.5, math.Min(w, h)*0.4, 0, math.Pi*2, false)
-		// cv.Stroke()
-
-		// step++
-	})
+	}
 
 	return nil
+}
+
+func (m *VirtualMap) Close() {
+	for _, i := range m.renderedIDs {
+		i.Free()
+	}
+
+	ttf.Quit()
+	sdl.Quit()
+	m.window.Destroy()
+}
+
+func (m *VirtualMap) Update() error {
+	if !m.running {
+		return &MapQuitError{}
+	}
+
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch event.(type) {
+		case *sdl.QuitEvent:
+			m.running = false
+			return &MapQuitError{}
+		}
+	}
+
+	m.windowSurface.FillRect(&sdl.Rect{0, 0, m.windowSurface.W, m.windowSurface.H}, 0xFF555555)
+
+	for _, stationID := range m.stationIDs {
+		station := m.stations[stationID]
+		idSolid := m.renderedIDs[stationID]
+		screenPos := m.stationScreenPos[stationID]
+
+		m.windowSurface.FillRect(&sdl.Rect{
+			X: screenPos.X - idSolid.W/2,
+			Y: screenPos.Y - idSolid.H/2,
+			W: idSolid.W,
+			H: idSolid.H,
+		}, station.Color.ARGB())
+
+		err := idSolid.Blit(&idSolid.ClipRect, m.windowSurface, &sdl.Rect{
+			X: screenPos.X - idSolid.W/2,
+			Y: screenPos.Y - idSolid.H/2,
+			W: idSolid.W,
+			H: idSolid.H,
+		})
+
+		if err != nil {
+			common.LogError(err.Error())
+		}
+	}
+
+	return m.window.UpdateSurface()
 }

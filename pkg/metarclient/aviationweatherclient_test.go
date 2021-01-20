@@ -71,15 +71,15 @@ func TestAviationWeatherParseResponse(t *testing.T) {
 		t.Error("unexpected report count", len(reports))
 	}
 
-	if reports[0].FlightCategory != common.FlightRuleVFR {
+	if reports["CYEG"].FlightCategory != common.FlightRuleVFR {
 		t.Error("unnexpected flight rules")
 	}
 
-	if reports[0].StationID != "CYEG" {
+	if reports["CYEG"].StationID != "CYEG" {
 		t.Error("unnexpected station ID")
 	}
 
-	if reports[0].WindSpeedKts != 8 {
+	if reports["CYEG"].WindSpeedKts != 8 {
 		t.Error("unnexpected wind speed")
 	}
 }
@@ -119,15 +119,15 @@ func TestAviationWeatherParseResponseWrongStations(t *testing.T) {
 		t.Error("unexpected report count", len(reports))
 	}
 
-	if reports[0].FlightCategory != common.FlightRuleError {
+	if reports["CABC"].FlightCategory != common.FlightRuleError {
 		t.Error("unnexpected flight rules")
 	}
 
-	if reports[0].StationID != "CABC" {
+	if reports["CABC"].StationID != "CABC" {
 		t.Error("unnexpected station ID")
 	}
 
-	if reports[0].WindSpeedKts != 0 {
+	if reports["CABC"].WindSpeedKts != 0 {
 		t.Error("unnexpected wind speed")
 	}
 }
@@ -168,7 +168,7 @@ func TestClientFetchIntegrated(t *testing.T) {
 
 	doneServerChan := make(chan int, 0)
 
-	client.Fetch(func(reports []*MetarReport, err error) {
+	client.Fetch(func(reports map[string]*MetarReport, err error) {
 		if err != nil {
 			t.Error(err)
 		}
@@ -178,11 +178,11 @@ func TestClientFetchIntegrated(t *testing.T) {
 			t.Error("received unnexpected report count")
 		}
 
-		if reports[0].StationID != "CYEG" {
+		if reports["CYEG"].StationID != "CYEG" {
 			t.Error("unnexpected first station id")
 		}
 
-		if reports[1].StationID != "CYYC" {
+		if reports["CYYC"].StationID != "CYYC" {
 			t.Error("unnexpected second station id")
 		}
 

@@ -139,7 +139,7 @@ func (t *Track) normalizeKeyFrames(keyFrames []KeyFrame, length int) ([]KeyFrame
 		return keyFrames[i].Position < keyFrames[j].Position
 	})
 
-	if len(keyFrames) < 2 {
+	if len(keyFrames) <= 2 {
 		fixedValue := Color(0)
 		if len(keyFrames) == 1 {
 			fixedValue = keyFrames[0].Value

@@ -2,31 +2,32 @@ package main
 
 import (
 	"os"
-	"time"
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
+	"github.com/ataboo/go-metar-blink/pkg/engine"
 	"github.com/ataboo/go-metar-blink/pkg/metarclient"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
-	"github.com/ataboo/go-metar-blink/pkg/virtualmap"
 )
 
 func main() {
 	appSettings := common.GetAppSettings()
-
 	stationRepo := initStationRepo(appSettings)
 
-	stations, err := stationRepo.GetStations()
-
+	engine, err := engine.CreateEngine(stationRepo, appSettings)
 	if err != nil {
-		common.LogError("failed to get stations: %s", err)
+		common.LogError("failed to create engine, %s", err)
 		panic("aborting")
 	}
 
-	common.LogInfo("Got stations: %d", len(stations))
-
-	err = virtualmap.ShowMap(stations)
+	err = engine.Start()
 	if err != nil {
-		common.LogError("failed to show map: %s", err)
+		common.LogError("failed to start engine: %s", err)
+		panic("aborting")
+	}
+
+	select {
+	case <-engine.DoneSubscribe():
+		break
 	}
 
 	os.Exit(0)
@@ -43,7 +44,7 @@ func initStationRepo(settings *common.AppSettings) *stationrepo.StationRepo {
 		common.LogError("Failed to start client: %s", err.Error())
 	}
 
-	repo := stationrepo.CreateStationRepo(client, &stationrepo.Config{UpdatePeriod: time.Minute * time.Duration(settings.UpdatePeriodMins)})
+	repo := stationrepo.CreateStationRepo(client, &stationrepo.Config{StationIDs: settings.StationIDs})
 
 	return repo
 }

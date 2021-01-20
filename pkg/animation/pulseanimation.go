@@ -54,6 +54,10 @@ func (a *PulseAnimation) Update(delta time.Duration, values map[int]Color) {
 	a.GetValues(values)
 }
 
+func (a *PulseAnimation) Step(values map[int]Color) {
+	a.Update(time.Second/time.Duration(50), values)
+}
+
 // GetValues gets the values for each channel.
 func (a *PulseAnimation) GetValues(values map[int]Color) {
 	value := lerpColor(a.start, a.end, float64(a.position)/float64(a.period), a.interFunc)

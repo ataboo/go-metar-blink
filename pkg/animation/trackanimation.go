@@ -43,6 +43,12 @@ func (a *TrackAnimation) Update(delta time.Duration, values map[int]Color) {
 	a.getValuesFromAllTracks(values, stepCount)
 }
 
+func (a *TrackAnimation) Step(values map[int]Color) {
+	if a.running {
+		a.getValuesFromAllTracks(values, 1)
+	}
+}
+
 // Start allows advancing of the tracks on Update.
 func (a *TrackAnimation) Start() {
 	a.running = true

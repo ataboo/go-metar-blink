@@ -3,8 +3,8 @@ package stationrepo
 import (
 	"errors"
 	"fmt"
-	"time"
 
+	"github.com/ataboo/go-metar-blink/pkg/animation"
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/geo"
 	"github.com/ataboo/go-metar-blink/pkg/metarclient"
@@ -18,20 +18,20 @@ const (
 type StationRepo struct {
 	client      metarclient.MetarClient
 	coordinates map[string]*geo.Coordinate
-	reports     []*metarclient.MetarReport
-	lastUpdate  time.Time
 	config      *Config
 }
 
 type Station struct {
 	ID           string
+	Ordinal      int
 	FlightRules  string
 	WindSpeedKts float64
 	Coordinate   *geo.Coordinate
+	Color        animation.Color
 }
 
 type Config struct {
-	UpdatePeriod time.Duration
+	StationIDs []string
 }
 
 func CreateStationRepo(client metarclient.MetarClient, config *Config) *StationRepo {
@@ -41,45 +41,60 @@ func CreateStationRepo(client metarclient.MetarClient, config *Config) *StationR
 	}
 }
 
-func (r *StationRepo) GetStations() (stations []*Station, err error) {
+func (r *StationRepo) LoadStations() (stations map[string]*Station, err error) {
 	err = r.loadCoordinatesIfEmpty()
 	if err != nil {
 		return nil, err
 	}
 
-	if r.reports == nil || r.lastUpdate.Add(r.config.UpdatePeriod).Before(time.Now()) {
-		common.LogInfo("repo fetching fresh reports")
-		reports, err := r.client.GetReports()
-		if err != nil {
-			return nil, err
-		}
-
-		r.reports = reports
-	}
-
-	stations = make([]*Station, 0, len(stations))
-	for _, report := range r.reports {
-		if report.Error {
-			continue
-		}
-
-		position, ok := r.coordinates[report.StationID]
+	stations = make(map[string]*Station, 0)
+	idx := 0
+	for _, id := range r.config.StationIDs {
+		position, ok := r.coordinates[id]
 		if !ok {
-			return nil, fmt.Errorf("failed to get position matching station '%s'", report.StationID)
+			return nil, fmt.Errorf("failed to get position matching station '%s'", id)
 		}
-		stations = append(stations, &Station{
-			ID:           report.StationID,
-			FlightRules:  report.FlightRules,
-			WindSpeedKts: report.WindSpeedKts,
+		stations[id] = &Station{
+			ID:           id,
+			Ordinal:      idx,
+			FlightRules:  common.FlightRuleError,
+			WindSpeedKts: 0,
 			Coordinate: &geo.Coordinate{
 				Latitude:  position.Latitude,
 				Longitude: position.Longitude,
 				Altitude:  position.Altitude,
 			},
-		})
+		}
+		idx++
 	}
 
 	return stations, nil
+}
+
+func (r *StationRepo) UpdateReports(stations map[string]*Station) error {
+	common.LogDebug("repo fetching fresh reports")
+	reports, err := r.client.GetReports()
+	if err != nil {
+		return err
+	}
+
+	for _, s := range stations {
+		r, ok := reports[s.ID]
+		if !ok {
+			r = &metarclient.MetarReport{
+				Error:           true,
+				StationID:       s.ID,
+				ObservationTime: "",
+				FlightRules:     common.FlightRuleError,
+				WindSpeedKts:    0,
+			}
+		}
+
+		s.FlightRules = r.FlightRules
+		s.WindSpeedKts = r.WindSpeedKts
+	}
+
+	return nil
 }
 
 func (r *StationRepo) loadCoordinatesIfEmpty() error {
@@ -147,7 +162,7 @@ func (r *StationRepo) loadCoordinatesFromCache() error {
 	}
 
 	success := true
-	for _, stationID := range common.GetAppSettings().StationIDs {
+	for _, stationID := range r.config.StationIDs {
 		if _, ok := positionMap[stationID]; !ok {
 			success = false
 			common.LogInfo("station '%s' not found in cached positions", stationID)

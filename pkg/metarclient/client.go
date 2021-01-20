@@ -13,8 +13,8 @@ type Settings struct {
 	Strategy   MetarStrategy
 }
 
-type MetarResponseHandler func(reports []*MetarReport, err error)
-type MetarPositionResponseHandler func(positions []*MetarPosition, err error)
+type MetarResponseHandler func(reports map[string]*MetarReport, err error)
+type MetarPositionResponseHandler func(positions map[string]*MetarPosition, err error)
 
 type MetarReport struct {
 	Error           bool
@@ -22,6 +22,9 @@ type MetarReport struct {
 	ObservationTime string
 	FlightRules     string
 	WindSpeedKts    float64
+	SkyCover        string
+	CloudBaseFtAGL  int
+	CloudType       string
 }
 
 type MetarPosition struct {
@@ -33,8 +36,8 @@ type MetarPosition struct {
 }
 
 type MetarClient interface {
-	GetReports() (reports []*MetarReport, err error)
-	GetStationPositions() (positions []*MetarPosition, err error)
+	GetReports() (reports map[string]*MetarReport, err error)
+	GetStationPositions() (positions map[string]*MetarPosition, err error)
 	Fetch(handler MetarResponseHandler)
 	FetchStationPositions(handler MetarPositionResponseHandler)
 }

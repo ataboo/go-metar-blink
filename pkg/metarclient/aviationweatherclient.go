@@ -27,6 +27,10 @@ type aviationWeatherMetar struct {
 	Latitude        float64 `xml:"latitude"`
 	Longitude       float64 `xml:"longitude"`
 	Elevation       float64 `xml:"elevation_m"`
+	VisibilitySM    float64 `xml:"visibility_statute_mi"`
+	SkyCover        string  `xml:"sky_condition>sky_cover"`
+	CloudBaseFtAGL  int     `xml:"sky_condition>cloud_base_ft_agl"`
+	CloudType       string  `xml:"sky_condition>cloud_type"`
 }
 
 type aviationWeatherData struct {
@@ -50,7 +54,7 @@ func newAviationWeatherClient(settings *Settings, endPoint string) MetarClient {
 	}
 }
 
-func (c *aviationWeatherClient) GetReports() (reports []*MetarReport, err error) {
+func (c *aviationWeatherClient) GetReports() (reports map[string]*MetarReport, err error) {
 	endPoint, err := c.buildQueryURL(false)
 	if err != nil {
 		return nil, err
@@ -61,21 +65,24 @@ func (c *aviationWeatherClient) GetReports() (reports []*MetarReport, err error)
 		return nil, err
 	}
 
-	reports = make([]*MetarReport, len(awm))
-	for i, a := range awm {
-		reports[i] = &MetarReport{
+	reports = make(map[string]*MetarReport, len(awm))
+	for _, a := range awm {
+		reports[a.StationID] = &MetarReport{
 			Error:           a.Error,
 			StationID:       a.StationID,
 			ObservationTime: a.ObservationTime,
 			FlightRules:     a.FlightCategory,
 			WindSpeedKts:    a.WindSpeedKts,
+			SkyCover:        a.SkyCover,
+			CloudBaseFtAGL:  a.CloudBaseFtAGL,
+			CloudType:       a.CloudType,
 		}
 	}
 
 	return reports, nil
 }
 
-func (c *aviationWeatherClient) GetStationPositions() (positions []*MetarPosition, err error) {
+func (c *aviationWeatherClient) GetStationPositions() (positions map[string]*MetarPosition, err error) {
 	endPoint, err := c.buildQueryURL(true)
 	if err != nil {
 		return nil, err
@@ -86,9 +93,9 @@ func (c *aviationWeatherClient) GetStationPositions() (positions []*MetarPositio
 		return nil, err
 	}
 
-	reports := make([]*MetarPosition, len(awm))
-	for i, a := range awm {
-		reports[i] = &MetarPosition{
+	reports := make(map[string]*MetarPosition, len(awm))
+	for id, a := range awm {
+		reports[id] = &MetarPosition{
 			Error:     a.Error,
 			StationID: a.StationID,
 			Latitude:  a.Latitude,
@@ -135,6 +142,9 @@ func (c *aviationWeatherClient) buildQueryURL(getPosition bool) (*url.URL, error
 			"observation_time",
 			"wind_speed_kt",
 			"flight_category",
+			"visibility_statute_mi",
+			"sky_cover",
+			"cloud_base_ft_agl",
 		}
 	}
 
@@ -143,7 +153,7 @@ func (c *aviationWeatherClient) buildQueryURL(getPosition bool) (*url.URL, error
 	q.Set("requestType", "retrieve")
 	q.Set("format", "xml")
 	q.Set("stationString", strings.Join(c.settings.StationIDs, ","))
-	q.Set("hoursBeforeNow", "3")
+	q.Set("hoursBeforeNow", "6")
 	q.Set("mostRecentForEachStation", "constraint")
 	q.Set("fields", strings.Join(fields, ","))
 	u.RawQuery = q.Encode()
@@ -151,7 +161,7 @@ func (c *aviationWeatherClient) buildQueryURL(getPosition bool) (*url.URL, error
 	return u, nil
 }
 
-func (c *aviationWeatherClient) getRawMetarData(endPoint *url.URL) ([]*aviationWeatherMetar, error) {
+func (c *aviationWeatherClient) getRawMetarData(endPoint *url.URL) (map[string]*aviationWeatherMetar, error) {
 	response, err := http.Get(endPoint.String())
 	if err != nil {
 		return nil, err
@@ -160,7 +170,7 @@ func (c *aviationWeatherClient) getRawMetarData(endPoint *url.URL) ([]*aviationW
 	return c.parseResponse(response)
 }
 
-func (c *aviationWeatherClient) parseResponse(response *http.Response) ([]*aviationWeatherMetar, error) {
+func (c *aviationWeatherClient) parseResponse(response *http.Response) (map[string]*aviationWeatherMetar, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
@@ -187,34 +197,23 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) ([]*aviat
 		return nil, errors.New("received errors from aviation weather")
 	}
 
-	sort.Slice(data.Metars, func(i int, j int) bool {
-		return data.Metars[i].StationID < data.Metars[j].StationID
-	})
+	inputMap := make(map[string]*aviationWeatherMetar)
+	for _, m := range data.Metars {
+		inputMap[m.StationID] = m
 
-	rawIdx := 0
+		if m.FlightCategory == "" {
+			common.LogWarn("station %s has no flight rule", m.StationID)
+			m.FlightCategory = common.FlightRuleUnknown
+		}
+	}
+
+	outputMap := make(map[string]*aviationWeatherMetar)
 
 	for _, stationID := range c.settings.StationIDs {
-		matched := false
-		for rawIdx < len(data.Metars) {
-			rawMetar := data.Metars[rawIdx]
-
-			if rawMetar.StationID > stationID {
-				break
-			}
-
-			rawIdx++
-
-			if rawMetar.StationID == stationID {
-				matched = true
-				break
-			} else {
-				common.LogWarn("received data for unnexpected station: '%s'\n", rawMetar.StationID)
-			}
-		}
-
-		if !matched {
-			common.LogWarn("failed to receive data for station '%s'\n", stationID)
-			data.Metars = append(data.Metars, &aviationWeatherMetar{
+		if m, ok := inputMap[stationID]; ok {
+			outputMap[stationID] = m
+		} else {
+			outputMap[stationID] = &aviationWeatherMetar{
 				Error:           true,
 				StationID:       stationID,
 				ObservationTime: "",
@@ -223,9 +222,11 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) ([]*aviat
 				Latitude:        0,
 				Longitude:       0,
 				Elevation:       0,
-			})
+			}
+
+			common.LogWarn("failed to receive data for station '%s'", stationID)
 		}
 	}
 
-	return data.Metars, nil
+	return outputMap, nil
 }

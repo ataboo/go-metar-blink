@@ -6,11 +6,13 @@ import (
 )
 
 const (
-	FlightRuleVFR   = "VFR"
-	FlightRuleSVFR  = "SVFR"
-	FlightRuleIFR   = "IFR"
-	FlightRuleLIFR  = "LIFR"
-	FlightRuleError = "Error"
+	FlightRuleVFR     = "VFR"
+	FlightRuleSVFR    = "SVFR"
+	FlightRuleMVFR    = "MVFR"
+	FlightRuleIFR     = "IFR"
+	FlightRuleLIFR    = "LIFR"
+	FlightRuleUnknown = "Unknown"
+	FlightRuleError   = "Error"
 )
 
 func GetProjectRoot() string {

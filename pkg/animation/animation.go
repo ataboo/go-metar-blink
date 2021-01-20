@@ -11,6 +11,7 @@ type Animation interface {
 	Start()
 	Stop()
 	Update(delta time.Duration, values map[int]Color)
+	Step(values map[int]Color)
 	GetValues(values map[int]Color)
 }
 
