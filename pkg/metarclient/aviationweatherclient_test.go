@@ -35,6 +35,8 @@ func TestAviationWeatherUrlBuilding(t *testing.T) {
 }
 
 func TestAviationWeatherParseResponse(t *testing.T) {
+	common.InitLoggersToTestWriter()
+
 	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CYEG", "CYYC"},
 		Strategy:   AviationWeatherMetarStrategy,
@@ -45,7 +47,7 @@ func TestAviationWeatherParseResponse(t *testing.T) {
 
 	aviationClient := client.(*aviationWeatherClient)
 
-	exampleRaw, err := ioutil.ReadFile(path.Join(common.GetProjectRoot(), "resources/aviation-weather-example.xml"))
+	exampleRaw, err := ioutil.ReadFile(path.Join(common.GetProjectRoot(), "resources/dev/aviation-weather-example.xml"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,7 +95,7 @@ func TestAviationWeatherParseResponseWrongStations(t *testing.T) {
 	})
 	aviationClient := client.(*aviationWeatherClient)
 
-	exampleRaw, err := ioutil.ReadFile(path.Join(common.GetProjectRoot(), "resources/aviation-weather-example.xml"))
+	exampleRaw, err := ioutil.ReadFile(path.Join(common.GetProjectRoot(), "resources/dev/aviation-weather-example.xml"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -145,7 +147,7 @@ func TestClientFetchIntegrated(t *testing.T) {
 		Handler: nil,
 	}
 
-	exampleRaw, err := ioutil.ReadFile(path.Join(common.GetProjectRoot(), "resources/aviation-weather-example.xml"))
+	exampleRaw, err := ioutil.ReadFile(path.Join(common.GetProjectRoot(), "resources/dev/aviation-weather-example.xml"))
 	if err != nil {
 		t.Error(err)
 	}

@@ -139,6 +139,12 @@ func (t *Track) normalizeKeyFrames(keyFrames []KeyFrame, length int) ([]KeyFrame
 		return keyFrames[i].Position < keyFrames[j].Position
 	})
 
+	for i := 0; i < len(keyFrames)-1; i++ {
+		if keyFrames[i].Position == keyFrames[i+1].Position {
+			return nil, errors.New("key frames may not be at the same position")
+		}
+	}
+
 	if len(keyFrames) <= 2 {
 		fixedValue := Color(0)
 		if len(keyFrames) == 1 {
@@ -149,12 +155,6 @@ func (t *Track) normalizeKeyFrames(keyFrames []KeyFrame, length int) ([]KeyFrame
 			{Position: 0, Value: fixedValue},
 			{Position: length - 1, Value: fixedValue},
 		}, nil
-	}
-
-	for i := 0; i < len(keyFrames)-1; i++ {
-		if keyFrames[i].Position == keyFrames[i+1].Position {
-			return nil, errors.New("key frames may not be at the same position")
-		}
 	}
 
 	lastFrame := keyFrames[len(keyFrames)-1]

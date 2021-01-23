@@ -4,20 +4,37 @@ import (
 	"flag"
 	"io/ioutil"
 	"path"
+	"strconv"
 	"strings"
 
+	"github.com/ataboo/go-metar-blink/pkg/animation"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
+type ColorThemeStrings struct {
+	VFR   string `json:"vfr"`
+	SVFR  string `json:"svfr"`
+	IFR   string `json:"ifr"`
+	LIFR  string `json:"lifr"`
+	Error string `json:"error"`
+}
+
+func (t *ColorThemeStrings) ParseColorHexString(strVal string) animation.Color {
+	intVal, _ := strconv.ParseUint(strVal, 0, 32)
+
+	return animation.Color(intVal)
+}
+
 type AppSettings struct {
-	StationIDs        []string `json:"station_ids"`
-	ClientStrategy    string   `json:"client_strategy"`
-	WindyThresholdKts float32  `json:"windy_threshold_kts"`
-	UpdatePeriodMins  int      `json:"update_period_mins"`
-	LoggingDir        string   `json:"logging_dir"`
-	LoggingMethod     string   `json:"logging_method"`
-	LoggingLevel      string   `json:"logging_level"`
-	CacheDir          string   `json:"cache_dir"`
+	StationIDs        []string          `json:"station_ids"`
+	ClientStrategy    string            `json:"client_strategy"`
+	WindyThresholdKts float32           `json:"windy_threshold_kts"`
+	UpdatePeriodMins  int               `json:"update_period_mins"`
+	LoggingDir        string            `json:"logging_dir"`
+	LoggingMethod     string            `json:"logging_method"`
+	LoggingLevel      string            `json:"logging_level"`
+	CacheDir          string            `json:"cache_dir"`
+	Colors            ColorThemeStrings `json:"colors"`
 }
 
 var _appSettings *AppSettings

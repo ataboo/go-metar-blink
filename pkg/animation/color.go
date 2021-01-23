@@ -1,17 +1,17 @@
 package animation
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
-	ColorRed    = Color(0xd1495b)
-	ColorGreen  = Color(0x0EAD69)
-	ColorBlue   = Color(0x007ea7)
-	ColorWhite  = Color(0xFFFFFF)
-	ColorBlack  = Color(0x000000)
-	ColorOrange = Color(0xDC7633)
-	ColorPink   = Color(0xEE4266)
-	ColorPurple = Color(0x540D6E)
-	ColorYellow = Color(0xFFD23F)
+	ColorRed     = Color(0xFF0000)
+	ColorGreen   = Color(0x00FF00)
+	ColorBlue    = Color(0x0000FF)
+	ColorMagenta = Color(0xFF00FF)
+	ColorWhite   = Color(0xFFFFFF)
+	ColorBlack   = Color(0x000000)
+	ColorYellow  = Color(0xFFD23F)
 )
 
 // Color is an RGB representation of a color.
@@ -47,4 +47,8 @@ func (c Color) ARGB() uint32 {
 
 func (c Color) RGBA() uint32 {
 	return uint32(c.R())<<24 | uint32(c.G())<<16 | uint32(c.B())<<8 | uint32(0xFF)
+}
+
+func (c Color) RGB() uint32 {
+	return uint32(c.R()<<16) | uint32(c.G())<<8 | uint32(c.B())
 }

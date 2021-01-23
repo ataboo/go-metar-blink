@@ -1,3 +1,5 @@
 .vscode 
 go-metar-blink
+go-metar-blink-armv6
 logs.txt
+build

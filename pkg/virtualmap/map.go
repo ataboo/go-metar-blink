@@ -1,3 +1,5 @@
+// +build amd64
+
 package virtualmap
 
 import (
@@ -16,10 +18,6 @@ const (
 	ImageWidthPx  = 1600
 	ImageHeightPx = 900
 )
-
-type MapQuitError struct{}
-
-func (e *MapQuitError) Error() string { return "this virtual map is no longer running" }
 
 type VirtualMap struct {
 	stations         map[string]*stationrepo.Station
@@ -95,7 +93,7 @@ func CreateVirtualMap(stations map[string]*stationrepo.Station) (vMap *VirtualMa
 }
 
 func (m *VirtualMap) renderIds() error {
-	font, err := ttf.OpenFont(path.Join(common.GetResourcesRoot(), "meslo_powerline.ttf"), 16)
+	font, err := ttf.OpenFont(path.Join(common.GetResourcesRoot(), "dev", "meslo_powerline.ttf"), 16)
 	defer font.Close()
 
 	m.renderedIDs = make(map[string]*sdl.Surface, len(m.stations))
@@ -109,7 +107,7 @@ func (m *VirtualMap) renderIds() error {
 	return nil
 }
 
-func (m *VirtualMap) Close() {
+func (m *VirtualMap) Dispose() {
 	for _, i := range m.renderedIDs {
 		i.Free()
 	}
@@ -121,14 +119,14 @@ func (m *VirtualMap) Close() {
 
 func (m *VirtualMap) Update() error {
 	if !m.running {
-		return &MapQuitError{}
+		return &common.MapQuitError{}
 	}
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch event.(type) {
 		case *sdl.QuitEvent:
 			m.running = false
-			return &MapQuitError{}
+			return &common.MapQuitError{}
 		}
 	}
 

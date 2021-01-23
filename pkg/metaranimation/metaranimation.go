@@ -15,15 +15,25 @@ const (
 	MaxPeriodWindSpeed   = float64(80)
 )
 
-// var windPeriods = map[float64]int{
-// 	10: 6 * MetarAnimationFPS,
-// 	20: 4 * MetarAnimationFPS,
-// 	30: 2 * MetarAnimationFPS,
-// 	40: MetarAnimationFPS,
-// 	50: MetarAnimationFPS / 2,
-// }
+type ColorTheme struct {
+	VFR   animation.Color `json:"vfr"`
+	SVFR  animation.Color `json:"svfr"`
+	IFR   animation.Color `json:"ifr"`
+	LIFR  animation.Color `json:"lifr"`
+	Error animation.Color `json:"error"`
+}
 
-func LoadingAnimation(channelCount int) animation.Animation {
+type MetarAnimationFactory struct {
+	theme *ColorTheme
+}
+
+func CreateMetarAnimationFactory(theme *ColorTheme) *MetarAnimationFactory {
+	return &MetarAnimationFactory{
+		theme: theme,
+	}
+}
+
+func (f *MetarAnimationFactory) LoadingAnimation(channelCount int) animation.Animation {
 	channels := make([]int, channelCount)
 	for i := 0; i < channelCount; i++ {
 		channels[i] = i
@@ -32,10 +42,10 @@ func LoadingAnimation(channelCount int) animation.Animation {
 	return animation.CreatePulseAnimation(time.Second*2, animation.ColorWhite, animation.ColorBlack, channels)
 }
 
-func ConditionsAnimation(stations map[string]*stationrepo.Station) animation.Animation {
+func (f *MetarAnimationFactory) ConditionsAnimation(stations map[string]*stationrepo.Station) animation.Animation {
 	tracks := make([]*animation.Track, len(stations))
 	for _, s := range stations {
-		track, err := trackForConditions(s)
+		track, err := f.trackForConditions(s)
 		if err != nil {
 			common.LogError("failed to create animation track: %s", err)
 			panic("aborting")
@@ -50,12 +60,12 @@ func ConditionsAnimation(stations map[string]*stationrepo.Station) animation.Ani
 	return trackAnim
 }
 
-func trackForConditions(station *stationrepo.Station) (*animation.Track, error) {
+func (f *MetarAnimationFactory) trackForConditions(station *stationrepo.Station) (*animation.Track, error) {
 	if station.FlightRules == common.FlightRuleError {
-		return stationErrorTrack()
+		return f.stationErrorTrack()
 	}
 
-	color := trackColorForFlightRules(station)
+	color := f.trackColorForFlightRules(station)
 
 	if station.WindSpeedKts <= float64(MinBlinkingWindSpeed) {
 		// TODO support single frame animation
@@ -65,7 +75,7 @@ func trackForConditions(station *stationrepo.Station) (*animation.Track, error) 
 
 	}
 
-	frameCount := frameCountForWindSpeed(station.WindSpeedKts)
+	frameCount := f.frameCountForWindSpeed(station.WindSpeedKts)
 	return animation.CreateTrack(frameCount, true, []animation.KeyFrame{
 		{5, color},
 		{10, animation.ColorBlack},
@@ -76,7 +86,7 @@ func trackForConditions(station *stationrepo.Station) (*animation.Track, error) 
 }
 
 // Two quick blinks in 1 second, off for 1 second
-func stationErrorTrack() (*animation.Track, error) {
+func (f *MetarAnimationFactory) stationErrorTrack() (*animation.Track, error) {
 	t, err := animation.CreateTrack(100, true, []animation.KeyFrame{
 		{0, animation.ColorBlack},
 		{4, animation.ColorRed},
@@ -95,27 +105,27 @@ func stationErrorTrack() (*animation.Track, error) {
 	return t, nil
 }
 
-func trackColorForFlightRules(station *stationrepo.Station) animation.Color {
+func (f *MetarAnimationFactory) trackColorForFlightRules(station *stationrepo.Station) animation.Color {
 	switch station.FlightRules {
 	case common.FlightRuleIFR:
-		return animation.ColorOrange
+		return f.theme.IFR
 	case common.FlightRuleLIFR:
-		return animation.ColorYellow
+		return f.theme.LIFR
 	case common.FlightRuleSVFR:
-		return animation.ColorBlue
+		return f.theme.SVFR
 	case common.FlightRuleVFR:
-		return animation.ColorGreen
+		return f.theme.VFR
 	case common.FlightRuleUnknown:
-		return animation.ColorRed
+		return f.theme.Error
 	case common.FlightRuleMVFR:
-		return animation.ColorBlue
+		return f.theme.SVFR
 	default:
 		common.LogWarn("flight rule '%s' has no color", station.FlightRules)
 		return animation.ColorRed
 	}
 }
 
-func frameCountForWindSpeed(windSpeedKts float64) int {
+func (f *MetarAnimationFactory) frameCountForWindSpeed(windSpeedKts float64) int {
 	if windSpeedKts > MaxPeriodWindSpeed {
 		windSpeedKts = MaxPeriodWindSpeed
 	}

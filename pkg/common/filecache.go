@@ -14,21 +14,21 @@ const (
 func LoadCachedFile(fileName string) ([]byte, error) {
 	initFileCache()
 
-	return ioutil.ReadFile(path.Join(_appSettings.CacheDir, fileName))
+	return ioutil.ReadFile(path.Join(GetAppSettings().CacheDir, fileName))
 }
 
 func CacheToFile(fileName string, bytes []byte) error {
 	initFileCache()
 
-	return ioutil.WriteFile(path.Join(_appSettings.CacheDir, fileName), bytes, CacheFilePermission)
+	return ioutil.WriteFile(path.Join(GetAppSettings().CacheDir, fileName), bytes, CacheFilePermission)
 }
 
 func initFileCache() {
-	if _, err := os.Stat(_appSettings.CacheDir); err == nil {
+	if _, err := os.Stat(GetAppSettings().CacheDir); err == nil {
 		return
 	}
 
-	err := os.MkdirAll(_appSettings.CacheDir, CacheDirPermission)
+	err := os.MkdirAll(GetAppSettings().CacheDir, CacheDirPermission)
 	if err != nil {
 		panic(err)
 	}

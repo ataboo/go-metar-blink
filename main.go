@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/engine"
@@ -25,10 +27,18 @@ func main() {
 		panic("aborting")
 	}
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
+
 	select {
 	case <-engine.DoneSubscribe():
+		common.LogDebug("engine done")
 		break
+	case sigVal := <-sigs:
+		common.LogDebug("received signal: %d", sigVal)
 	}
+
+	engine.Dispose()
 
 	os.Exit(0)
 }

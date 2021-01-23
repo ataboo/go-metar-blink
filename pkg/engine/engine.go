@@ -8,8 +8,12 @@ import (
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/metaranimation"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
-	"github.com/ataboo/go-metar-blink/pkg/virtualmap"
 )
+
+type MetarMap interface {
+	Update() error
+	Dispose()
+}
 
 type Engine struct {
 	repo         *stationrepo.StationRepo
@@ -19,18 +23,27 @@ type Engine struct {
 	lastFrame    time.Time
 	animation    animation.Animation
 	quitChan     chan int
-	vMap         *virtualmap.VirtualMap
+	metarMap     MetarMap
 	updatePeriod time.Duration
 	fps          int
 	lock         sync.Mutex
 	colorMap     map[int]animation.Color
 	doneSubs     []chan int
+	animFactory  *metaranimation.MetarAnimationFactory
 }
 
 func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (*Engine, error) {
 	stations, err := repo.LoadStations()
 	if err != nil {
 		return nil, err
+	}
+
+	theme := metaranimation.ColorTheme{
+		Error: settings.Colors.ParseColorHexString(settings.Colors.Error),
+		IFR:   settings.Colors.ParseColorHexString(settings.Colors.IFR),
+		LIFR:  settings.Colors.ParseColorHexString(settings.Colors.LIFR),
+		VFR:   settings.Colors.ParseColorHexString(settings.Colors.VFR),
+		SVFR:  settings.Colors.ParseColorHexString(settings.Colors.SVFR),
 	}
 
 	e := &Engine{
@@ -42,20 +55,23 @@ func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (
 		lock:         sync.Mutex{},
 		colorMap:     make(map[int]animation.Color),
 		doneSubs:     make([]chan int, 0),
+		animFactory:  metaranimation.CreateMetarAnimationFactory(&theme),
 	}
 
-	vMap, err := virtualmap.CreateVirtualMap(stations)
+	mMap, err := createMap(stations)
 	if err != nil {
-		common.LogError("failed to init virtual map: %s", err)
+		common.LogError("failed to init map: %s", err)
 		return nil, err
 	}
-	e.vMap = vMap
+
+	e.metarMap = mMap
 
 	return e, nil
 }
 
 func (e *Engine) Start() error {
-	e.animation = metaranimation.LoadingAnimation(len(e.stations))
+	common.LogInfo("started loading animation")
+	e.animation = e.animFactory.LoadingAnimation(len(e.stations))
 	e.animation.Start()
 
 	e.fetchTicker = time.NewTicker(e.updatePeriod)
@@ -72,6 +88,10 @@ func (e *Engine) DoneSubscribe() chan int {
 	e.doneSubs = append(e.doneSubs, newChan)
 
 	return newChan
+}
+
+func (e *Engine) Dispose() {
+	e.metarMap.Dispose()
 }
 
 func (e *Engine) mainLoop() {
@@ -113,9 +133,9 @@ func (e *Engine) updateFrame(currentTime time.Time) bool {
 	}
 	e.lastFrame = currentTime
 
-	err := e.vMap.Update()
+	err := e.metarMap.Update()
 	if err != nil {
-		if _, ok := err.(*virtualmap.MapQuitError); ok {
+		if _, ok := err.(*common.MapQuitError); ok {
 			common.LogInfo("map has quit")
 			return false
 		}
@@ -129,7 +149,8 @@ func (e *Engine) updateFrame(currentTime time.Time) bool {
 func (e *Engine) fetchRoutine() {
 	e.repo.UpdateReports(e.stations)
 	e.lock.Lock()
-	e.animation = metaranimation.ConditionsAnimation(e.stations)
+	e.animation = e.animFactory.ConditionsAnimation(e.stations)
 	e.animation.Start()
+	common.LogInfo("updated conditions animation")
 	e.lock.Unlock()
 }

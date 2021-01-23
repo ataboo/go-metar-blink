@@ -1,0 +1,17 @@
+[Unit]
+Description=Go Metar Blink
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+
+ExecStart=/usr/local/go-metar-blink/go-metar-blink-armv6
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+WorkingDirectory=/usr/local/go-metar-blink
+
+[Install]
+WantedBy=multi-user.target

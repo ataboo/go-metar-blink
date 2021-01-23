@@ -166,6 +166,29 @@ func TestKeyFramesWithSamePositionRejected(t *testing.T) {
 	}
 }
 
+func TestSingleFrameAnimationValid(t *testing.T) {
+	track, err := CreateTrack(1, false, []KeyFrame{
+		{
+			Position: 0,
+			Value:    42,
+		},
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	track.Step(1)
+
+	if track.GetPosition() != 0 {
+		t.Error("unnexpected position", track.GetPosition())
+	}
+
+	if track.GetLength() != 1 {
+		t.Error("unnexpected length", track.GetLength())
+	}
+}
+
 func TestPanicIfLerpSameFrame(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {

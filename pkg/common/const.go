@@ -1,8 +1,10 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"strings"
 )
 
 const (
@@ -15,7 +17,22 @@ const (
 	FlightRuleError   = "Error"
 )
 
+type MapQuitError struct{}
+
+func (e *MapQuitError) Error() string { return "this map is no longer running" }
+
 func GetProjectRoot() string {
+	exec, _ := os.Executable()
+	fmt.Printf("Exec: %s\n", exec)
+
+	if !strings.HasSuffix(exec, ".test") {
+		return path.Dir(exec)
+	}
+
+	return stepUpFromTestToProjectRoot()
+}
+
+func stepUpFromTestToProjectRoot() string {
 	tryCount := 0
 	dir, _ := os.Getwd()
 

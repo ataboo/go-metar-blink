@@ -2,10 +2,19 @@
     "client_strategy": "AviationWeather",
     "windy_threshold_kts": 10.0,
     "update_period_mins": 15,
+    
     "logging_method": "console",
     "logging_dir": "/var/tmp/go-metar-blink/logs",
     "cache_dir": "/var/tmp/go-metar-blink/cache",
+    // "single-file", "multi-file", "console"
     "logging_level": "debug",
+    "colors": {
+        "vfr": "0x00ff00",
+        "svfr": "0x0000ff",
+        "ifr": "0xff0000",
+        "lifr": "0xff00ff",
+        "error": "0xffffff"
+    },
     "station_ids": [
         //MB
         "CYWG",
