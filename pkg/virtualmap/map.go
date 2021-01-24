@@ -29,7 +29,7 @@ type VirtualMap struct {
 	running          bool
 }
 
-func CreateVirtualMap(stations map[string]*stationrepo.Station) (vMap *VirtualMap, err error) {
+func CreateVirtualMap(stations map[string]*stationrepo.Station, brightness byte) (vMap *VirtualMap, err error) {
 	if len(stations) == 0 {
 		return nil, errors.New("need at least one station")
 	}

@@ -75,19 +75,56 @@ func TestSharpBytePeak(t *testing.T) {
 	}
 }
 
-/*
-func sharpPeakByte(start byte, end byte, mu float64) byte {
-	factor := 1 - 2*math.Abs(mu-0.5)
+func TestARGB(t *testing.T) {
+	table := []struct {
+		color    Color
+		expected uint32
+	}{
+		{0xFFFFFF, 0xFFFFFFFF},
+		{0x000000, 0xFF000000},
+		{0x112233, 0xFF112233},
+	}
 
-	return byte(math.Round(float64(start)*(1-factor) + float64(end)*factor))
+	for _, row := range table {
+		if row.color.ARGB() != row.expected {
+			t.Errorf("unnexpected argb: 0x%x => 0x%x, 0x%x", row.color, row.color.ARGB(), row.expected)
+		}
+	}
 }
 
-func cosinePeakByte(startVal byte, endVal byte, mu float64) byte {
-	factor := (1 - math.Cos(mu*math.Pi*2)) / 2
+func TestRGBA(t *testing.T) {
+	table := []struct {
+		color    Color
+		expected uint32
+	}{
+		{0xFFFFFF, 0xFFFFFFFF},
+		{0x000000, 0x000000FF},
+		{0x112233, 0x112233FF},
+	}
 
-	return byte(math.Round(float64(startVal)*(1-factor) + float64(endVal)*factor))
+	for _, row := range table {
+		if row.color.RGBA() != row.expected {
+			t.Errorf("unnexpected argb: 0x%x => 0x%x, 0x%x", row.color, row.color.RGBA(), row.expected)
+		}
+	}
 }
-*/
+
+func TestRGB(t *testing.T) {
+	table := []struct {
+		color    Color
+		expected uint32
+	}{
+		{0xFFFFFF, 0xFFFFFF},
+		{0x000000, 0x000000},
+		{0x112233, 0x112233},
+	}
+
+	for _, row := range table {
+		if row.color.RGB() != row.expected {
+			t.Errorf("unnexpected argb: 0x%x => 0x%x, 0x%x", row.color, row.color.RGBA(), row.expected)
+		}
+	}
+}
 
 func assertColorsMatchExpected(expected Color, actual Color, t *testing.T) {
 	if expected != actual {

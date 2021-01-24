@@ -38,12 +38,15 @@ func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (
 		return nil, err
 	}
 
+	parsedColors := settings.GetParsedColors()
+
 	theme := metaranimation.ColorTheme{
-		Error: settings.Colors.ParseColorHexString(settings.Colors.Error),
-		IFR:   settings.Colors.ParseColorHexString(settings.Colors.IFR),
-		LIFR:  settings.Colors.ParseColorHexString(settings.Colors.LIFR),
-		VFR:   settings.Colors.ParseColorHexString(settings.Colors.VFR),
-		SVFR:  settings.Colors.ParseColorHexString(settings.Colors.SVFR),
+		Error:      parsedColors.Error,
+		IFR:        parsedColors.IFR,
+		LIFR:       parsedColors.LIFR,
+		VFR:        parsedColors.VFR,
+		SVFR:       parsedColors.SVFR,
+		Brightness: parsedColors.Brightness,
 	}
 
 	e := &Engine{
@@ -58,7 +61,7 @@ func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (
 		animFactory:  metaranimation.CreateMetarAnimationFactory(&theme),
 	}
 
-	mMap, err := createMap(stations)
+	mMap, err := createMap(stations, theme.Brightness)
 	if err != nil {
 		common.LogError("failed to init map: %s", err)
 		return nil, err

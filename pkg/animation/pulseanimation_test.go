@@ -7,7 +7,7 @@ import (
 
 func TestPulseAnimationCosine(t *testing.T) {
 	values := make(map[int]Color, 0)
-	pulse := CreatePulseAnimation(time.Second*10, 0, ColorWhite, []int{0, 2, 4}).(*PulseAnimation)
+	pulse := CreatePulseAnimation(time.Second*10, 0, ColorWhite, []int{0, 2, 4}, 50).(*PulseAnimation)
 
 	pulse.GetValues(values)
 	if len(values) != 3 {
@@ -64,7 +64,7 @@ func TestPulseAnimationCosine(t *testing.T) {
 
 func TestPulseAnimationStartStop(t *testing.T) {
 	values := make(map[int]Color, 0)
-	pulse := CreatePulseAnimation(time.Second*10, 0, 100, []int{0, 2, 4}).(*PulseAnimation)
+	pulse := CreatePulseAnimation(time.Second*10, 0, 100, []int{0, 2, 4}, 50).(*PulseAnimation)
 
 	pulse.Update(time.Second*1, values)
 	if pulse.position != 0 {
@@ -86,6 +86,33 @@ func TestPulseAnimationStartStop(t *testing.T) {
 	pulse.Reset()
 	if pulse.position != 0 {
 		t.Error("unexpected position", pulse.position)
+	}
+}
+
+func TestPulseAnimationStep(t *testing.T) {
+	values := make(map[int]Color, 0)
+	pulse := CreatePulseAnimation(time.Second*10, 0, 100, []int{0, 2, 4}, 50).(*PulseAnimation)
+
+	pulse.Step(values)
+	if pulse.position != 0 {
+		t.Error("unnexpected position", pulse.position)
+	}
+
+	pulse.Start()
+	pulse.Step(values)
+
+	if pulse.position != time.Second/time.Duration(50) {
+		t.Error("unnexpected position", pulse.position)
+	}
+
+	pulse.position = pulse.period - time.Second/time.Duration(50)
+	if pulse.position != time.Second*10-time.Second/50 {
+		t.Error("unnexpected position", pulse.position)
+	}
+
+	pulse.Step(values)
+	if pulse.position != 0 {
+		t.Error("unnexpected position", pulse.position)
 	}
 }
 

@@ -1,9 +1,9 @@
 package metarclient
 
-import "fmt"
+import (
+	"fmt"
 
-const (
-	AviationWeatherMetarStrategy = "AviationWeather"
+	"github.com/ataboo/go-metar-blink/pkg/common"
 )
 
 type MetarStrategy string
@@ -44,7 +44,7 @@ type MetarClient interface {
 
 func CreateMetarClient(settings *Settings) (MetarClient, error) {
 	switch settings.Strategy {
-	case AviationWeatherMetarStrategy:
+	case common.AviationWeatherMetarStrategy:
 		return newAviationWeatherClient(settings, AviationWeatherEndPoint), nil
 	default:
 		return nil, fmt.Errorf("configured metar strategy not supported")

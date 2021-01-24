@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -34,8 +35,8 @@ var _ io.Writer = (*TestLogWriter)(nil)
 
 type LogLevel int
 
-func (l *LogLevel) String() string {
-	switch *l {
+func (l LogLevel) String() string {
+	switch l {
 	case LogLevelDebug:
 		return "Debug"
 	case LogLevelInfo:
@@ -49,18 +50,19 @@ func (l *LogLevel) String() string {
 	}
 }
 
-func MustParseLogLevel(levelStr string) LogLevel {
-	switch strings.ToLower(_appSettings.LoggingLevel) {
+func ParseLogLevel(levelStr string) (LogLevel, error) {
+	switch strings.ToLower(levelStr) {
 	case "error":
-		return LogLevelError
+		return LogLevelError, nil
 	case "warning":
-		return LogLevelWarn
+		return LogLevelWarn, nil
 	case "info":
-		return LogLevelInfo
+		return LogLevelInfo, nil
 	case "debug":
-		return LogLevelDebug
+		return LogLevelDebug, nil
 	default:
-		panic("unsupported log level: " + _appSettings.LoggingLevel)
+		fmt.Println("unsupported log level: " + levelStr)
+		return LogLevelError, errors.New("unsupported log level")
 	}
 }
 
@@ -97,7 +99,7 @@ func LogError(format string, v ...interface{}) {
 }
 
 func assertLoggersInitialized() {
-	if infoLogger != nil && warningLogger != nil && errorLogger != nil {
+	if debugLogger != nil && infoLogger != nil && warningLogger != nil && errorLogger != nil {
 		return
 	}
 
@@ -140,10 +142,10 @@ func initFileLogging(appSettings *AppSettings, multiFile bool) {
 }
 
 func InitLoggersToWriter(stdOut io.Writer, errOut io.Writer) {
-	debugLogger = log.New(stdOut, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
-	infoLogger = log.New(stdOut, "INFO:  ", log.Ldate|log.Ltime|log.Lshortfile)
-	warningLogger = log.New(stdOut, "WARN:  ", log.Ldate|log.Ltime|log.Lshortfile)
-	errorLogger = log.New(errOut, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	debugLogger = log.New(stdOut, LogLevel(LogLevelDebug).String()+": ", log.Ldate|log.Ltime|log.Lshortfile)
+	infoLogger = log.New(stdOut, LogLevel(LogLevelInfo).String()+":  ", log.Ldate|log.Ltime|log.Lshortfile)
+	warningLogger = log.New(stdOut, LogLevel(LogLevelWarn).String()+":  ", log.Ldate|log.Ltime|log.Lshortfile)
+	errorLogger = log.New(errOut, LogLevel(LogLevelError).String()+": ", log.Ldate|log.Ltime|log.Lshortfile)
 
 	LogDebug("initialized loggers to level '%s'", CurrentLogLevel.String())
 }

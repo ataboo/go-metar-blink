@@ -16,11 +16,12 @@ const (
 )
 
 type ColorTheme struct {
-	VFR   animation.Color `json:"vfr"`
-	SVFR  animation.Color `json:"svfr"`
-	IFR   animation.Color `json:"ifr"`
-	LIFR  animation.Color `json:"lifr"`
-	Error animation.Color `json:"error"`
+	VFR        animation.Color
+	SVFR       animation.Color
+	IFR        animation.Color
+	LIFR       animation.Color
+	Error      animation.Color
+	Brightness byte
 }
 
 type MetarAnimationFactory struct {
@@ -39,7 +40,7 @@ func (f *MetarAnimationFactory) LoadingAnimation(channelCount int) animation.Ani
 		channels[i] = i
 	}
 
-	return animation.CreatePulseAnimation(time.Second*2, animation.ColorWhite, animation.ColorBlack, channels)
+	return animation.CreatePulseAnimation(time.Second*2, animation.ColorWhite, animation.ColorBlack, channels, MetarAnimationFPS)
 }
 
 func (f *MetarAnimationFactory) ConditionsAnimation(stations map[string]*stationrepo.Station) animation.Animation {

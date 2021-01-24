@@ -12,13 +12,13 @@ type LightMap struct {
 	device   *ws2811.WS2811
 }
 
-func CreateLightMap(stations map[string]*stationrepo.Station) (lMap *LightMap, err error) {
+func CreateLightMap(stations map[string]*stationrepo.Station, brightness byte) (lMap *LightMap, err error) {
 	lMap = &LightMap{
 		stations: stations,
 	}
 
 	options := ws2811.DefaultOptions
-	options.Channels[0].Brightness = 128
+	options.Channels[0].Brightness = int(brightness)
 	options.Channels[0].LedCount = len(stations)
 
 	dev, err := ws2811.MakeWS2811(&options)

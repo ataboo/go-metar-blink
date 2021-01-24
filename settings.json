@@ -13,7 +13,8 @@
         "svfr": "0x0000ff",
         "ifr": "0xff0000",
         "lifr": "0xff00ff",
-        "error": "0xffffff"
+        "error": "0xffffff",
+        "brightness": "0x7f"
     },
     "station_ids": [
         //MB

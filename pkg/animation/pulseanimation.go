@@ -14,10 +14,11 @@ type PulseAnimation struct {
 	period    time.Duration
 	channels  []int
 	interFunc byteInterpolation
+	fps       int
 }
 
 // CreatePulseAnimation creates a new pulse animation.
-func CreatePulseAnimation(period time.Duration, start Color, end Color, channels []int) Animation {
+func CreatePulseAnimation(period time.Duration, start Color, end Color, channels []int, fps int) Animation {
 	return &PulseAnimation{
 		value:     start,
 		running:   false,
@@ -27,6 +28,7 @@ func CreatePulseAnimation(period time.Duration, start Color, end Color, channels
 		position:  time.Duration(0),
 		channels:  channels,
 		interFunc: cosinePeakByte,
+		fps:       fps,
 	}
 }
 
@@ -55,7 +57,7 @@ func (a *PulseAnimation) Update(delta time.Duration, values map[int]Color) {
 }
 
 func (a *PulseAnimation) Step(values map[int]Color) {
-	a.Update(time.Second/time.Duration(50), values)
+	a.Update(time.Second/time.Duration(a.fps), values)
 }
 
 // GetValues gets the values for each channel.

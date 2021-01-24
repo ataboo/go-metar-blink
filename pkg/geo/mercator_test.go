@@ -1,7 +1,6 @@
 package geo
 
 import (
-	"math"
 	"testing"
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
@@ -31,23 +30,6 @@ func TestZeroedMercatorProjection(t *testing.T) {
 	}
 }
 
-func TestNormalizeAngle(t *testing.T) {
-	table := []struct {
-		angle    float64
-		expected float64
-	}{
-		{math.Pi + 0.5, 0.5 - math.Pi},
-		{-math.Pi - 0.5, math.Pi - 0.5},
-	}
-
-	for _, row := range table {
-		normalized := common.NormalizePlusMinusPi(row.angle)
-		if !common.Similar(normalized, row.expected) {
-			t.Errorf("Got %f instead of %f", normalized, row.expected)
-		}
-	}
-}
-
 func TestOffsetMercatorProjection(t *testing.T) {
 	spec := &MercatorSpec{
 		LatCenter:  20,
@@ -69,6 +51,47 @@ func TestOffsetMercatorProjection(t *testing.T) {
 
 	for _, row := range table {
 		assertMercatorPos(Coordinate{row.Lat, row.Long, 0}, spec, t, row.xExp, row.yExp)
+	}
+}
+
+func TestCoordinateEquality(t *testing.T) {
+	table := []struct {
+		coordA   Coordinate
+		coordB   Coordinate
+		expected bool
+	}{
+		{Coordinate{0, 0, 0}, Coordinate{0, 0, 0}, true},
+		{Coordinate{1, 2, 3}, Coordinate{1, 2, 3}, true},
+		{Coordinate{1, 2, 3}, Coordinate{0, 2, 3}, false},
+		{Coordinate{1, 2, 3}, Coordinate{1, 0, 3}, false},
+		{Coordinate{1, 2, 3}, Coordinate{1, 2, 0}, false},
+	}
+
+	for _, row := range table {
+		if row.coordA.Equal(&row.coordB) != row.expected {
+			t.Errorf("%+v, %+v => %t, %t", row.coordA, row.coordB, row.coordA.Equal(&row.coordB), row.expected)
+		}
+	}
+}
+
+func TestParseDecimalCoord(t *testing.T) {
+	coord, err := ParseDecimalCoordinate("1.234", "5.678")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !coord.Equal(&Coordinate{Latitude: 1.234, Longitude: 5.678, Altitude: 0}) {
+		t.Error("unnexpected value")
+	}
+
+	_, err = ParseDecimalCoordinate("invalid", "5.678")
+	if err == nil {
+		t.Error("expected error")
+	}
+
+	_, err = ParseDecimalCoordinate("1.234", "invalid")
+	if err == nil {
+		t.Error("expected error")
 	}
 }
 

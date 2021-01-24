@@ -14,6 +14,8 @@ mkdir $INSTALL_DIR || echo "Failed to make install dir"
 cp -r ./ $INSTALL_DIR
 cp go-metar-blink.service /etc/systemd/system/go-metar-blink.service
 
+cp -n settings.json /boot/go-metar-blink.settings.json
+
 # Install the service
 systemctl enable go-metar-blink;
 systemctl start go-metar-blink;

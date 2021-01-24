@@ -33,7 +33,7 @@ type Coordinate struct {
 }
 
 func (c *Coordinate) Equal(other *Coordinate) bool {
-	return c.Latitude == other.Latitude && c.Longitude == other.Longitude
+	return c.Latitude == other.Latitude && c.Longitude == other.Longitude && c.Altitude == other.Altitude
 }
 
 func ParseDecimalCoordinate(latStr, longStr string) (coord *Coordinate, err error) {

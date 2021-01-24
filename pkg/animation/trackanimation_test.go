@@ -65,6 +65,23 @@ func TestTrackAnimation(t *testing.T) {
 	assertTrackPositions(animation.tracks, t, "reset", 0, 0)
 }
 
+func TestTrackStep(t *testing.T) {
+	values := make(map[int]Color)
+	animation := CreateTrackAnimation(createTestTracks(), 10).(*TrackAnimation)
+
+	assertTrackPositions(animation.tracks, t, "starting position", 0, 0)
+	animation.Start()
+	animation.Step(values)
+
+	assertTrackPositions(animation.tracks, t, "single step", 1, 1)
+
+	animation.tracks[0].Seek(9)
+	animation.tracks[1].Seek(14)
+	animation.Step(values)
+
+	assertTrackPositions(animation.tracks, t, "looping end", 0, 14)
+}
+
 func assertTrackValues(values map[int]Color, t *testing.T, message string, expectedValues ...Color) {
 	for i, val := range values {
 		if expectedValues[i] != val {

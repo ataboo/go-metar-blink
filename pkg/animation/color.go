@@ -50,5 +50,5 @@ func (c Color) RGBA() uint32 {
 }
 
 func (c Color) RGB() uint32 {
-	return uint32(c.R()<<16) | uint32(c.G())<<8 | uint32(c.B())
+	return uint32(c)
 }
