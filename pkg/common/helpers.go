@@ -37,6 +37,10 @@ func ParseColorHexString(strVal string) (animation.Color, error) {
 }
 
 func GetProjectRoot() string {
+	if root, ok := os.LookupEnv("GO_METAR_BLINK_ROOT"); ok {
+		return root
+	}
+
 	if inTestEnvironment() {
 		return stepUpFromTestToProjectRoot()
 	}

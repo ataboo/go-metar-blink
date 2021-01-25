@@ -57,6 +57,6 @@ func (c *Coordinate) MercatorPosition(spec *MercatorSpec) (latRads float64, long
 
 	longRads = common.NormalizePlusMinusPi((c.Longitude - center.Longitude) * DegToRad)
 
-	latRads = math.Log(math.Tan(math.Pi/4 + DegToRad*(c.Latitude-center.Latitude)/2))
+	latRads = math.Log(math.Tan(math.Pi/4+DegToRad*(c.Latitude-center.Latitude)/2)) * 1.4
 	return latRads, longRads
 }

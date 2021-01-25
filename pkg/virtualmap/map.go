@@ -11,12 +11,13 @@ import (
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
 const (
 	PaddingPx     = 80
-	ImageWidthPx  = 1600
-	ImageHeightPx = 900
+	ImageWidthPx  = 1920
+	ImageHeightPx = 1080
 )
 
 type VirtualMap struct {
@@ -89,7 +90,21 @@ func CreateVirtualMap(stations map[string]*stationrepo.Station, brightness byte)
 		vMap.stationIDs[s.Ordinal] = s.ID
 	}
 
+	err = vMap.writeStationPositionsToCache()
+	if err != nil {
+		common.LogError("failed to write station positions: %s", err.Error())
+	}
+
 	return vMap, nil
+}
+
+func (m *VirtualMap) writeStationPositionsToCache() error {
+	bytes, err := json5.MarshalIndent(m.stationScreenPos, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	return common.CacheToFile("station_screen_pos.json", bytes)
 }
 
 func (m *VirtualMap) renderIds() error {
@@ -133,20 +148,27 @@ func (m *VirtualMap) Update() error {
 	m.windowSurface.FillRect(&sdl.Rect{0, 0, m.windowSurface.W, m.windowSurface.H}, 0xFF555555)
 
 	for _, stationID := range m.stationIDs {
-		station := m.stations[stationID]
+		// station := m.stations[stationID]
 		idSolid := m.renderedIDs[stationID]
 		screenPos := m.stationScreenPos[stationID]
 
+		// m.windowSurface.FillRect(&sdl.Rect{
+		// 	X: screenPos.X - idSolid.W/2,
+		// 	Y: screenPos.Y - idSolid.H/2,
+		// 	W: idSolid.W,
+		// 	H: idSolid.H,
+		// }, station.Color.ARGB())
+
 		m.windowSurface.FillRect(&sdl.Rect{
-			X: screenPos.X - idSolid.W/2,
-			Y: screenPos.Y - idSolid.H/2,
-			W: idSolid.W,
-			H: idSolid.H,
-		}, station.Color.ARGB())
+			X: screenPos.X - 1,
+			Y: screenPos.Y - 1,
+			W: 3,
+			H: 3,
+		}, 0xFFFFFFFF)
 
 		err := idSolid.Blit(&idSolid.ClipRect, m.windowSurface, &sdl.Rect{
 			X: screenPos.X - idSolid.W/2,
-			Y: screenPos.Y - idSolid.H/2,
+			Y: screenPos.Y - idSolid.H/2 - 16,
 			W: idSolid.W,
 			H: idSolid.H,
 		})
