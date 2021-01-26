@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
 
@@ -55,20 +56,20 @@ func GetAppSettings() *AppSettings {
 func DumpSettingsInfo() {
 	settings := GetAppSettings()
 
-	LogDebug("\tActive Station IDs: %s", strings.Join(settings.StationIDs, ", "))
-	LogDebug("\tClient Strategy: %s", settings.ClientStrategy)
-	LogDebug("\tUpdatePeriodMins: %d", settings.UpdatePeriodMins)
-	LogDebug("\tLoggingDir: %s", settings.LoggingDir)
-	LogDebug("\tLoggingMethod: %s", settings.LoggingMethod)
-	LogDebug("\tLoggingLevel: %s", settings.LoggingLevel)
-	LogDebug("\tCacheDir: %s", settings.CacheDir)
-	LogDebug("\tColors")
-	LogDebug("\t\tVFR: %s", settings.Colors.VFR)
-	LogDebug("\t\tSVFR: %s", settings.Colors.SVFR)
-	LogDebug("\t\tIFR: %s", settings.Colors.IFR)
-	LogDebug("\t\tLIFR: %s", settings.Colors.LIFR)
-	LogDebug("\t\tError: %s", settings.Colors.Error)
-	LogDebug("\t\tBrightness: %s", settings.Colors.Brightness)
+	logger.LogDebug("\tActive Station IDs: %s", strings.Join(settings.StationIDs, ", "))
+	logger.LogDebug("\tClient Strategy: %s", settings.ClientStrategy)
+	logger.LogDebug("\tUpdatePeriodMins: %d", settings.UpdatePeriodMins)
+	logger.LogDebug("\tLoggingDir: %s", settings.LoggingDir)
+	logger.LogDebug("\tLoggingMethod: %s", settings.LoggingMethod)
+	logger.LogDebug("\tLoggingLevel: %s", settings.LoggingLevel)
+	logger.LogDebug("\tCacheDir: %s", settings.CacheDir)
+	logger.LogDebug("\tColors")
+	logger.LogDebug("\t\tVFR: %s", settings.Colors.VFR)
+	logger.LogDebug("\t\tSVFR: %s", settings.Colors.SVFR)
+	logger.LogDebug("\t\tIFR: %s", settings.Colors.IFR)
+	logger.LogDebug("\t\tLIFR: %s", settings.Colors.LIFR)
+	logger.LogDebug("\t\tError: %s", settings.Colors.Error)
+	logger.LogDebug("\t\tBrightness: %s", settings.Colors.Brightness)
 }
 
 func inTestEnvironment() bool {
@@ -97,7 +98,7 @@ func mustLoadAppSettings() {
 		logErrorsAndPanic(errors)
 	}
 
-	CurrentLogLevel, err = ParseLogLevel(_appSettings.LoggingLevel)
+	initLoggingFromSettings(_appSettings)
 }
 
 func loadRawSettingsFile() ([]byte, error) {
@@ -131,7 +132,7 @@ func logErrorsAndPanic(errors map[string]string) {
 		filePath = path.Join(GetProjectRoot(), "panic.log")
 	}
 
-	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, LoggingFilePermission)
+	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, logger.LoggingFilePermission)
 	if err != nil {
 		fmt.Println("failed to write panic log")
 	} else {
@@ -155,15 +156,15 @@ func validateSettings(settings *AppSettings, errors map[string]string) {
 	settings.colorsParsed = settings.Colors.ParseColors(errors)
 
 	switch settings.LoggingMethod {
-	case LoggingMethodStdio:
-	case LoggingMethodMultiFile:
-	case LoggingMethodSingleFile:
+	case logger.LoggingMethodStdio:
+	case logger.LoggingMethodMultiFile:
+	case logger.LoggingMethodSingleFile:
 		break
 	default:
 		errors["LoggingMethod"] = "invalid logging method"
 	}
 
-	if _, err := ParseLogLevel(settings.LoggingLevel); err != nil {
+	if _, err := logger.ParseLogLevel(settings.LoggingLevel); err != nil {
 		errors["LoggingLevel"] = "invalid logging level"
 	}
 
@@ -178,7 +179,7 @@ func validateStationIds(errors map[string]string) {
 	keyMap := make(map[string]bool)
 	for _, id := range _appSettings.StationIDs {
 		if _, ok := keyMap[id]; ok {
-			LogWarn("station '%s' is found more than once in settings", id)
+			logger.LogWarn("station '%s' is found more than once in settings", id)
 		}
 
 		keyMap[id] = true

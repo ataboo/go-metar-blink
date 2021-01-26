@@ -1,12 +1,15 @@
 package common
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/ataboo/go-metar-blink/pkg/animation"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 )
 
 func Similar(a float64, b float64) bool {
@@ -67,4 +70,25 @@ func stepUpFromTestToProjectRoot() string {
 
 func GetResourcesRoot() string {
 	return path.Join(GetProjectRoot(), "resources")
+}
+
+func initLoggingFromSettings(appSettings *AppSettings) error {
+	level, err := logger.ParseLogLevel(_appSettings.LoggingLevel)
+	if err != nil {
+		return err
+	}
+	logger.CurrentLogLevel = level
+
+	switch strings.ToLower(appSettings.LoggingMethod) {
+	case logger.LoggingMethodSingleFile:
+		logger.InitFileLogging(appSettings.LoggingDir, "go-metar-blink", false)
+	case logger.LoggingMethodMultiFile:
+		logger.InitFileLogging(appSettings.LoggingDir, "go-metar-blink", true)
+	case logger.LoggingMethodStdio:
+		// logger defaults to stdio.
+	default:
+		return fmt.Errorf("unsupported logging method: " + appSettings.LoggingMethod)
+	}
+
+	return nil
 }

@@ -1,10 +1,10 @@
-package wirepath
+package rando
 
 import (
 	"fmt"
 	"math"
 
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/ataboo/go-metar-blink/cmd/stationpathfinder/pkg/wirepath"
 )
 
 type StationConnection struct {
@@ -13,7 +13,7 @@ type StationConnection struct {
 	Length float64
 }
 
-func (c *StationConnection) CalculateLength(positions map[string]*sdl.Point) error {
+func (c *StationConnection) CalculateLength(positions map[string]*wirepath.Position) error {
 	startPos, ok := positions[c.ID]
 	if !ok {
 		return fmt.Errorf("failed to get position of station '%s'", c.ID)

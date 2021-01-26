@@ -1,14 +1,21 @@
-package main
+package visualization
 
 import (
 	"errors"
 	"fmt"
+	"math"
 	"path"
 
+	"github.com/ataboo/go-metar-blink/cmd/stationpathfinder/pkg/wirepath"
 	"github.com/ataboo/go-metar-blink/pkg/common"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
+
+type MapQuitError struct{}
+
+func (e *MapQuitError) Error() string { return "SDL Map has quit" }
 
 type TextTexture struct {
 	Texture *sdl.Texture
@@ -36,16 +43,16 @@ const (
 	ImageHeightPx = 1080
 )
 
-func (v PathFindingVisualization) Update(pathfinder *RandoPathfinder) error {
+func (v PathFindingVisualization) Update(pathfinder wirepath.PathFinder, bestPath []string, bestScore float64) error {
 	if !v.running {
-		return &common.MapQuitError{}
+		return &MapQuitError{}
 	}
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch event.(type) {
 		case *sdl.QuitEvent:
 			v.running = false
-			return &common.MapQuitError{}
+			return &MapQuitError{}
 		}
 	}
 
@@ -56,7 +63,7 @@ func (v PathFindingVisualization) Update(pathfinder *RandoPathfinder) error {
 	v.renderer.SetDrawColor(0x55, 0x55, 0x55, 0xFF)
 	v.renderer.FillRect(&sdl.Rect{0, 0, v.windowSurface.W, v.windowSurface.H})
 
-	statsText, err := v.renderStats(stats)
+	statsText, err := v.renderStats(stats, bestScore)
 	if err != nil {
 		return err
 	}
@@ -65,15 +72,41 @@ func (v PathFindingVisualization) Update(pathfinder *RandoPathfinder) error {
 	statsRect := statsText.Surface.ClipRect
 	v.renderer.Copy(statsText.Texture, &statsRect, &sdl.Rect{X: PaddingPx, Y: PaddingPx, W: statsRect.W, H: statsRect.H})
 
-	for stationID, connection := range path.Connections {
-		thisPos := v.screenPositions[connection.ID]
-		nextPos := v.screenPositions[connection.EndID]
-		idText := v.renderedIDs[stationID]
+	if bestPath != nil {
+		lastBestID := bestPath[len(bestPath)-1]
+		for _, id := range bestPath {
+			thisPos := v.screenPositions[id]
+			lastPos := v.screenPositions[lastBestID]
+			v.renderer.SetDrawColor(0, 255, 0, 255)
 
-		if nextPos != nil {
-			v.renderer.SetDrawColor(255, 0, 0, 255)
-			v.renderer.DrawLine(thisPos.X, thisPos.Y, nextPos.X, nextPos.Y)
+			dy := thisPos.Y - lastPos.Y
+			dx := thisPos.X - lastPos.X
+
+			var xOffset int32
+			var yOffset int32
+			if math.Abs(float64(dy)) > math.Abs(float64(dx)) {
+				xOffset = 4
+				yOffset = 0
+			} else {
+				yOffset = 4
+				xOffset = 0
+			}
+
+			v.renderer.DrawLine(thisPos.X+xOffset, thisPos.Y+yOffset, lastPos.X+xOffset, lastPos.Y+yOffset)
+			v.renderer.DrawLine(thisPos.X-xOffset, thisPos.Y-yOffset, lastPos.X-xOffset, lastPos.Y-yOffset)
+			lastBestID = id
 		}
+	}
+
+	var lastID string = path[len(path)-1]
+	for _, id := range path {
+		thisPos := v.screenPositions[id]
+		idText := v.renderedIDs[id]
+
+		lastPos := v.screenPositions[lastID]
+		v.renderer.SetDrawColor(255, 0, 0, 255)
+		v.renderer.DrawLine(thisPos.X, thisPos.Y, lastPos.X, lastPos.Y)
+		lastID = id
 
 		v.renderer.SetDrawColor(255, 255, 255, 255)
 		v.renderer.FillRect(&sdl.Rect{
@@ -90,7 +123,7 @@ func (v PathFindingVisualization) Update(pathfinder *RandoPathfinder) error {
 			H: idText.Surface.H,
 		})
 		if err != nil {
-			common.LogError(err.Error())
+			logger.LogError(err.Error())
 		}
 	}
 
@@ -99,13 +132,23 @@ func (v PathFindingVisualization) Update(pathfinder *RandoPathfinder) error {
 	return nil
 }
 
-func CreatePathFindingVisualization(pathFinder *RandoPathfinder) (*PathFindingVisualization, error) {
-	if len(pathFinder.screenPositions) == 0 {
+func CreatePathFindingVisualization(pathFinder wirepath.PathFinder) (*PathFindingVisualization, error) {
+	positions := pathFinder.GetPositions()
+
+	if len(positions) == 0 {
 		return nil, errors.New("need at least one station position")
 	}
 
+	screenPosMap := make(map[string]*sdl.Point)
+	for _, p := range positions {
+		screenPosMap[p.Name] = &sdl.Point{
+			X: int32(p.X),
+			Y: int32(p.Y),
+		}
+	}
+
 	vMap := &PathFindingVisualization{
-		screenPositions: pathFinder.screenPositions,
+		screenPositions: screenPosMap,
 		running:         true,
 	}
 
@@ -176,9 +219,11 @@ func (m *PathFindingVisualization) renderIds() error {
 	return nil
 }
 
-func (v *PathFindingVisualization) renderStats(stats *PathfinderStats) (*TextTexture, error) {
+func (v *PathFindingVisualization) renderStats(stats *wirepath.PathfinderStats, bestScore float64) (*TextTexture, error) {
 
-	statsStr := fmt.Sprintf("Shortest:  %f\nRuntime:   %s\nGenerated: %d", stats.ShortestPath, stats.RunTime, stats.PathsGenerated)
+	bestScore = math.Min(bestScore, stats.ShortestPath)
+
+	statsStr := fmt.Sprintf("Shortest:  %f\nCurrent:   %f\nRuntime:   %s\nGenerated: %d", bestScore, stats.ShortestPath, stats.RunTime, stats.PathsGenerated)
 
 	surface, err := v.font.RenderUTF8BlendedWrapped(statsStr, sdl.Color{255, 255, 255, 255}, 800)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/engine"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/ataboo/go-metar-blink/pkg/metarclient"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
 )
@@ -17,13 +18,13 @@ func main() {
 
 	engine, err := engine.CreateEngine(stationRepo, appSettings)
 	if err != nil {
-		common.LogError("failed to create engine, %s", err)
+		logger.LogError("failed to create engine, %s", err)
 		panic("aborting")
 	}
 
 	err = engine.Start()
 	if err != nil {
-		common.LogError("failed to start engine: %s", err)
+		logger.LogError("failed to start engine: %s", err)
 		panic("aborting")
 	}
 
@@ -32,10 +33,10 @@ func main() {
 
 	select {
 	case <-engine.DoneSubscribe():
-		common.LogDebug("engine done")
+		logger.LogDebug("engine done")
 		break
 	case sigVal := <-sigs:
-		common.LogDebug("received signal: %d", sigVal)
+		logger.LogDebug("received signal: %d", sigVal)
 	}
 
 	engine.Dispose()
@@ -44,14 +45,14 @@ func main() {
 }
 
 func initStationRepo(settings *common.AppSettings) *stationrepo.StationRepo {
-	common.LogInfo("[1.1] Initializing client")
+	logger.LogInfo("[1.1] Initializing client")
 	common.DumpSettingsInfo()
 	client, err := metarclient.CreateMetarClient(&metarclient.Settings{
 		StationIDs: settings.StationIDs,
 		Strategy:   metarclient.MetarStrategy(settings.ClientStrategy),
 	})
 	if err != nil {
-		common.LogError("Failed to start client: %s", err.Error())
+		logger.LogError("Failed to start client: %s", err.Error())
 	}
 
 	repo := stationrepo.CreateStationRepo(client, &stationrepo.Config{StationIDs: settings.StationIDs})

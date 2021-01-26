@@ -1,11 +1,11 @@
-package wirepath
+package rando
 
 import (
 	"fmt"
 	"math/rand"
 	"strings"
 
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/ataboo/go-metar-blink/cmd/stationpathfinder/pkg/wirepath"
 )
 
 type StationPath struct {
@@ -79,7 +79,7 @@ func (p *StationPath) GetIDsOrdered() ([]string, error) {
 	return ids, nil
 }
 
-func (p *StationPath) CalculateLength(positions map[string]*sdl.Point) error {
+func (p *StationPath) CalculateLength(positions map[string]*wirepath.Position) error {
 	sum := 0.0
 
 	for _, c := range p.Connections {

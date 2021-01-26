@@ -8,6 +8,7 @@ import (
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/geo"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -92,7 +93,7 @@ func CreateVirtualMap(stations map[string]*stationrepo.Station, brightness byte)
 
 	err = vMap.writeStationPositionsToCache()
 	if err != nil {
-		common.LogError("failed to write station positions: %s", err.Error())
+		logger.LogError("failed to write station positions: %s", err.Error())
 	}
 
 	return vMap, nil
@@ -174,7 +175,7 @@ func (m *VirtualMap) Update() error {
 		})
 
 		if err != nil {
-			common.LogError(err.Error())
+			logger.LogError(err.Error())
 		}
 	}
 

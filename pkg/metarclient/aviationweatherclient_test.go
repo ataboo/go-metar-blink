@@ -35,8 +35,6 @@ func TestAviationWeatherUrlBuilding(t *testing.T) {
 }
 
 func TestAviationWeatherParseResponse(t *testing.T) {
-	common.InitLoggersToTestWriter()
-
 	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CYEG", "CYYC"},
 		Strategy:   common.AviationWeatherMetarStrategy,
@@ -87,8 +85,6 @@ func TestAviationWeatherParseResponse(t *testing.T) {
 }
 
 func TestAviationWeatherParseResponseWrongStations(t *testing.T) {
-	_ = common.InitLoggersToTestWriter()
-
 	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CABC"},
 		Strategy:   common.AviationWeatherMetarStrategy,
@@ -135,8 +131,6 @@ func TestAviationWeatherParseResponseWrongStations(t *testing.T) {
 }
 
 func TestClientFetchIntegrated(t *testing.T) {
-	_ = common.InitLoggersToTestWriter()
-
 	http.DefaultServeMux = new(http.ServeMux)
 
 	client := newAviationWeatherClient(&Settings{
@@ -209,7 +203,6 @@ func TestClientFetchIntegrated(t *testing.T) {
 }
 
 func TestStationPositionIntegrated(t *testing.T) {
-	_ = common.InitLoggersToTestWriter()
 	http.DefaultServeMux = new(http.ServeMux)
 
 	client := newAviationWeatherClient(&Settings{
@@ -282,8 +275,6 @@ func TestStationPositionIntegrated(t *testing.T) {
 }
 
 func TestParseResponseWithError(t *testing.T) {
-	_ = common.InitLoggersToTestWriter()
-
 	client, err := CreateMetarClient(&Settings{
 		StationIDs: []string{"CYEG"},
 		Strategy:   common.AviationWeatherMetarStrategy,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/ataboo/go-metar-blink/pkg/animation"
 	"github.com/ataboo/go-metar-blink/pkg/common"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
 )
 
@@ -48,7 +49,7 @@ func (f *MetarAnimationFactory) ConditionsAnimation(stations map[string]*station
 	for _, s := range stations {
 		track, err := f.trackForConditions(s)
 		if err != nil {
-			common.LogError("failed to create animation track: %s", err)
+			logger.LogError("failed to create animation track: %s", err)
 			panic("aborting")
 		}
 		// TODO optimize group tracks by condition and windspeed range
@@ -121,7 +122,7 @@ func (f *MetarAnimationFactory) trackColorForFlightRules(station *stationrepo.St
 	case common.FlightRuleMVFR:
 		return f.theme.SVFR
 	default:
-		common.LogWarn("flight rule '%s' has no color", station.FlightRules)
+		logger.LogWarn("flight rule '%s' has no color", station.FlightRules)
 		return animation.ColorRed
 	}
 }

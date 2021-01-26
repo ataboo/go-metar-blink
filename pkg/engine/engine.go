@@ -6,6 +6,7 @@ import (
 
 	"github.com/ataboo/go-metar-blink/pkg/animation"
 	"github.com/ataboo/go-metar-blink/pkg/common"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/ataboo/go-metar-blink/pkg/metaranimation"
 	"github.com/ataboo/go-metar-blink/pkg/stationrepo"
 )
@@ -63,7 +64,7 @@ func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (
 
 	mMap, err := createMap(stations, theme.Brightness)
 	if err != nil {
-		common.LogError("failed to init map: %s", err)
+		logger.LogError("failed to init map: %s", err)
 		return nil, err
 	}
 
@@ -73,7 +74,7 @@ func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (
 }
 
 func (e *Engine) Start() error {
-	common.LogInfo("started loading animation")
+	logger.LogInfo("started loading animation")
 	e.animation = e.animFactory.LoadingAnimation(len(e.stations))
 	e.animation.Start()
 
@@ -121,7 +122,7 @@ func (e *Engine) mainLoop() {
 			case doneChan <- 0:
 				break
 			case <-time.After(time.Second):
-				common.LogWarn("timed out sending done to sub")
+				logger.LogWarn("timed out sending done to sub")
 				break
 			}
 		}()
@@ -139,11 +140,11 @@ func (e *Engine) updateFrame(currentTime time.Time) bool {
 	err := e.metarMap.Update()
 	if err != nil {
 		if _, ok := err.(*common.MapQuitError); ok {
-			common.LogInfo("map has quit")
+			logger.LogInfo("map has quit")
 			return false
 		}
 
-		common.LogError("failed to update vmap %s", err)
+		logger.LogError("failed to update vmap %s", err)
 	}
 
 	return true
@@ -154,6 +155,6 @@ func (e *Engine) fetchRoutine() {
 	e.lock.Lock()
 	e.animation = e.animFactory.ConditionsAnimation(e.stations)
 	e.animation.Start()
-	common.LogInfo("updated conditions animation")
+	logger.LogInfo("updated conditions animation")
 	e.lock.Unlock()
 }

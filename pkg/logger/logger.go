@@ -1,4 +1,4 @@
-package common
+package logger
 
 import (
 	"errors"
@@ -103,37 +103,22 @@ func assertLoggersInitialized() {
 		return
 	}
 
-	if inTestEnvironment() {
-		panic("loggers should be initialized when testing")
-	}
-
-	appSettings := GetAppSettings()
-
-	switch strings.ToLower(appSettings.LoggingMethod) {
-	case LoggingMethodSingleFile:
-		initFileLogging(appSettings, false)
-	case LoggingMethodMultiFile:
-		initFileLogging(appSettings, true)
-	case LoggingMethodStdio:
-		InitLoggersToWriter(os.Stdout, os.Stderr)
-	default:
-		panic("unsupported logging method: " + appSettings.LoggingMethod)
-	}
+	InitLoggersToWriter(os.Stdout, os.Stderr)
 }
 
-func initFileLogging(appSettings *AppSettings, multiFile bool) {
-	err := os.MkdirAll(appSettings.LoggingDir, LoggingDirPermission)
+func InitFileLogging(loggingDir string, baseName string, multiFile bool) {
+	err := os.MkdirAll(loggingDir, LoggingDirPermission)
 	if err != nil {
 		panic(err)
 	}
 
 	var fileName string
 	if multiFile {
-		fileName = fmt.Sprintf("go-metar-blink.%s.log", time.Now().Format("2006-01-02_150405"))
+		fileName = fmt.Sprintf("%s.%s.log", baseName, time.Now().Format("2006-01-02_150405"))
 	} else {
-		fileName = fmt.Sprintf("go-metar-blink.log")
+		fileName = fmt.Sprintf("%s.log", baseName)
 	}
-	file, err := os.OpenFile(path.Join(appSettings.LoggingDir, fileName), os.O_APPEND|os.O_CREATE|os.O_WRONLY, LoggingFilePermission)
+	file, err := os.OpenFile(path.Join(loggingDir, fileName), os.O_APPEND|os.O_CREATE|os.O_WRONLY, LoggingFilePermission)
 	if err != nil {
 		panic(err)
 	}

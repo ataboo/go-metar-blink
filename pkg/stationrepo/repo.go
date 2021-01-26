@@ -7,6 +7,7 @@ import (
 	"github.com/ataboo/go-metar-blink/pkg/animation"
 	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/geo"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 	"github.com/ataboo/go-metar-blink/pkg/metarclient"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 )
@@ -72,7 +73,7 @@ func (r *StationRepo) LoadStations() (stations map[string]*Station, err error) {
 }
 
 func (r *StationRepo) UpdateReports(stations map[string]*Station) error {
-	common.LogDebug("repo fetching fresh reports")
+	logger.LogDebug("repo fetching fresh reports")
 	reports, err := r.client.GetReports()
 	if err != nil {
 		return err
@@ -103,7 +104,7 @@ func (r *StationRepo) loadCoordinatesIfEmpty() error {
 	}
 
 	if err := r.loadCoordinatesFromCache(); err == nil {
-		common.LogInfo("successfully loaded cached station coordinates")
+		logger.LogInfo("successfully loaded cached station coordinates")
 		return nil
 	}
 
@@ -114,17 +115,17 @@ func (r *StationRepo) loadCoordinatesIfEmpty() error {
 
 	bytes, err := json5.MarshalIndent(r.coordinates, "", "\t")
 	if err != nil {
-		common.LogWarn("failed to marshal coordinates map")
+		logger.LogWarn("failed to marshal coordinates map")
 		return nil
 	}
 
 	err = common.CacheToFile(PositionCacheFileName, bytes)
 	if err != nil {
-		common.LogWarn("failed to save coordinates to cache")
+		logger.LogWarn("failed to save coordinates to cache")
 
 	}
 
-	common.LogInfo("fetched and cached station coordinates")
+	logger.LogInfo("fetched and cached station coordinates")
 
 	return nil
 }
@@ -157,7 +158,7 @@ func (r *StationRepo) loadCoordinatesFromCache() error {
 
 	err = json5.Unmarshal(bytes, &positionMap)
 	if err != nil {
-		common.LogError("failed to unmarshal cached positions")
+		logger.LogError("failed to unmarshal cached positions")
 		return err
 	}
 
@@ -165,7 +166,7 @@ func (r *StationRepo) loadCoordinatesFromCache() error {
 	for _, stationID := range r.config.StationIDs {
 		if _, ok := positionMap[stationID]; !ok {
 			success = false
-			common.LogInfo("station '%s' not found in cached positions", stationID)
+			logger.LogInfo("station '%s' not found in cached positions", stationID)
 		}
 	}
 

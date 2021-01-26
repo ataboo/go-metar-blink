@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/ataboo/go-metar-blink/pkg/common"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 )
 
 var _ MetarClient = (*aviationWeatherClient)(nil)
@@ -188,12 +189,12 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) (map[stri
 
 	err = xml.Unmarshal(responseBytes, &data)
 	if err != nil {
-		common.LogError("failed to parse aviation weather response")
+		logger.LogError("failed to parse aviation weather response")
 		return nil, err
 	}
 
 	if len(data.Errors) > 0 {
-		common.LogError("errors from aviation weather: %s", strings.Join(data.Errors, ", "))
+		logger.LogError("errors from aviation weather: %s", strings.Join(data.Errors, ", "))
 		return nil, errors.New("received errors from aviation weather")
 	}
 
@@ -202,7 +203,7 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) (map[stri
 		inputMap[m.StationID] = m
 
 		if m.FlightCategory == "" {
-			common.LogWarn("station %s has no flight rule", m.StationID)
+			logger.LogWarn("station %s has no flight rule", m.StationID)
 			m.FlightCategory = common.FlightRuleUnknown
 		}
 	}
@@ -224,7 +225,7 @@ func (c *aviationWeatherClient) parseResponse(response *http.Response) (map[stri
 				Elevation:       0,
 			}
 
-			common.LogWarn("failed to receive data for station '%s'", stationID)
+			logger.LogWarn("failed to receive data for station '%s'", stationID)
 		}
 	}
 

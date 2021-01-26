@@ -4,8 +4,8 @@ import (
 	"errors"
 	"math"
 
-	"github.com/ataboo/go-metar-blink/pkg/common"
 	"github.com/ataboo/go-metar-blink/pkg/geo"
+	"github.com/ataboo/go-metar-blink/pkg/logger"
 )
 
 type StationRenderSpec struct {
@@ -43,7 +43,7 @@ func CreateRenderSpec(coordinates []*geo.Coordinate, imgWidthPx int, imgHeightPx
 	spec.computeCenterAndDimensions(coordinates)
 	scale, err := spec.computeScale()
 	if err != nil {
-		common.LogError("failed to compute scale: %s", err)
+		logger.LogError("failed to compute scale: %s", err)
 	}
 
 	spec.scaleFactor = scale
