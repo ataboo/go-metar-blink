@@ -114,7 +114,8 @@ func (s *StationRenderSpec) computeCenterAndDimensions(coordinates []*geo.Coordi
 	s.widthDeg = width
 	s.heightDeg = height
 	s.mercatorSpec = &geo.MercatorSpec{
-		LatCenter:  centerLat,
-		LongCenter: centerLong,
+		LatCenter:     centerLat,
+		LongCenter:    centerLong,
+		LatitudeScale: 1.4,
 	}
 }

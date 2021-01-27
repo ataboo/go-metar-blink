@@ -14,8 +14,11 @@ import (
 )
 
 const (
-	PiBootAppSettingsPath = "/boot/go-metar-blink.settings.json"
-	PiBootPanicErrorPath  = "/boot/go-metar-blink.panic.log"
+	PiBootAppSettingsPath  = "/boot/go-metar-blink.settings.json"
+	PiBootPanicErrorPath   = "/boot/go-metar-blink.panic.log"
+	PiTroubleshootFlagPath = "/boot/go-metar-blink-troubleshoot"
+
+	AMDTroubleshootFlagPath = "go-metar-blink-troubleshoot"
 )
 
 var _appSettings *AppSettings
@@ -51,6 +54,16 @@ func GetAppSettings() *AppSettings {
 	}
 
 	return _appSettings
+}
+
+func TroubleshootingModeActive() bool {
+	if runtime.GOOS == "arm" {
+		_, err := os.Stat(PiTroubleshootFlagPath)
+		return err == nil
+	}
+
+	_, err := os.Stat(path.Join(GetProjectRoot(), AMDTroubleshootFlagPath))
+	return err == nil
 }
 
 func DumpSettingsInfo() {

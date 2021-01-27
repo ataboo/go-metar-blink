@@ -13,10 +13,16 @@ import (
 )
 
 func main() {
-	appSettings := common.GetAppSettings()
-	stationRepo := initStationRepo(appSettings)
+	common.GetAppSettings()
+	runMainApp()
 
-	engine, err := engine.CreateEngine(stationRepo, appSettings)
+	os.Exit(0)
+}
+
+func runMainApp() {
+	stationRepo := initStationRepo(common.GetAppSettings())
+
+	engine, err := engine.CreateEngine(stationRepo, common.GetAppSettings())
 	if err != nil {
 		logger.LogError("failed to create engine, %s", err)
 		panic("aborting")
@@ -40,8 +46,6 @@ func main() {
 	}
 
 	engine.Dispose()
-
-	os.Exit(0)
 }
 
 func initStationRepo(settings *common.AppSettings) *stationrepo.StationRepo {

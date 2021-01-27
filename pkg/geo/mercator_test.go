@@ -8,8 +8,9 @@ import (
 
 func TestZeroedMercatorProjection(t *testing.T) {
 	spec := &MercatorSpec{
-		LatCenter:  0,
-		LongCenter: 0,
+		LatCenter:     0,
+		LongCenter:    0,
+		LatitudeScale: 1,
 	}
 
 	table := []struct {
@@ -32,8 +33,9 @@ func TestZeroedMercatorProjection(t *testing.T) {
 
 func TestOffsetMercatorProjection(t *testing.T) {
 	spec := &MercatorSpec{
-		LatCenter:  20,
-		LongCenter: -140,
+		LatCenter:     20,
+		LongCenter:    -140,
+		LatitudeScale: 1,
 	}
 
 	table := []struct {

@@ -149,16 +149,16 @@ func (m *VirtualMap) Update() error {
 	m.windowSurface.FillRect(&sdl.Rect{0, 0, m.windowSurface.W, m.windowSurface.H}, 0xFF555555)
 
 	for _, stationID := range m.stationIDs {
-		// station := m.stations[stationID]
+		station := m.stations[stationID]
 		idSolid := m.renderedIDs[stationID]
 		screenPos := m.stationScreenPos[stationID]
 
-		// m.windowSurface.FillRect(&sdl.Rect{
-		// 	X: screenPos.X - idSolid.W/2,
-		// 	Y: screenPos.Y - idSolid.H/2,
-		// 	W: idSolid.W,
-		// 	H: idSolid.H,
-		// }, station.Color.ARGB())
+		m.windowSurface.FillRect(&sdl.Rect{
+			X: screenPos.X - idSolid.W/2 - 4,
+			Y: screenPos.Y - idSolid.H/2 - 18,
+			W: idSolid.W + 8,
+			H: idSolid.H + 4,
+		}, station.Color.ARGB())
 
 		m.windowSurface.FillRect(&sdl.Rect{
 			X: screenPos.X - 1,

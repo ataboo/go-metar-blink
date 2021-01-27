@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"math"
+	"net"
 	"os"
 	"path"
 	"strconv"
@@ -91,4 +92,32 @@ func initLoggingFromSettings(appSettings *AppSettings) error {
 	}
 
 	return nil
+}
+
+func GetLocalIP() (net.IP, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, iFace := range ifaces {
+		if strings.HasPrefix(iFace.Name, "wl") {
+			addresses, err := iFace.Addrs()
+			if err != nil {
+				continue
+			}
+
+			for _, addr := range addresses {
+				ipNet, ok := addr.(*net.IPNet)
+
+				if !ok || ipNet.IP.To4() == nil || ipNet.IP.IsLoopback() {
+					continue
+				}
+
+				return ipNet.IP, nil
+			}
+		}
+	}
+
+	return nil, nil
 }

@@ -77,12 +77,38 @@ func (e *Engine) Start() error {
 	logger.LogInfo("started loading animation")
 	e.animation = e.animFactory.LoadingAnimation(len(e.stations))
 	e.animation.Start()
-
-	e.fetchTicker = time.NewTicker(e.updatePeriod)
 	e.frameTicker = time.NewTicker(time.Second / time.Duration(e.fps))
+	e.fetchTicker = time.NewTicker(e.updatePeriod)
 
-	go e.fetchRoutine()
+	if common.TroubleshootingModeActive() {
+		e.startIPAddressBlink()
+	} else {
+		go e.fetchRoutine()
+	}
+
 	go e.mainLoop()
+
+	return nil
+}
+
+func (e *Engine) startIPAddressBlink() error {
+	ip, err := common.GetLocalIP()
+	if err != nil {
+		return err
+	}
+
+	track, err := metaranimation.CreateMorseAnimation(ip.String())
+	if err != nil {
+		return err
+	}
+
+	track.ChannelIDs = make([]int, len(e.stations))
+	for i := 0; i < len(e.stations); i++ {
+		track.ChannelIDs[i] = i
+	}
+
+	e.animation = animation.CreateTrackAnimation([]*animation.Track{track}, 50)
+	e.animation.Start()
 
 	return nil
 }
