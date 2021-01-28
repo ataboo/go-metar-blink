@@ -14,11 +14,8 @@ import (
 )
 
 const (
-	PiBootAppSettingsPath  = "/boot/go-metar-blink.settings.json"
-	PiBootPanicErrorPath   = "/boot/go-metar-blink.panic.log"
-	PiTroubleshootFlagPath = "/boot/go-metar-blink-troubleshoot"
-
-	AMDTroubleshootFlagPath = "go-metar-blink-troubleshoot"
+	PiBootAppSettingsPath = "/boot/go-metar-blink.settings.json"
+	PiBootPanicErrorPath  = "/boot/go-metar-blink.panic.log"
 )
 
 var _appSettings *AppSettings
@@ -32,6 +29,7 @@ type AppSettings struct {
 	LoggingLevel     string             `json:"logging_level"`
 	CacheDir         string             `json:"cache_dir"`
 	Colors           *ColorThemeStrings `json:"colors"`
+	FlashIPOnStart   bool               `json:"flash_ip_on_start"`
 	colorsParsed     *ColorTheme
 }
 
@@ -54,16 +52,6 @@ func GetAppSettings() *AppSettings {
 	}
 
 	return _appSettings
-}
-
-func TroubleshootingModeActive() bool {
-	if runtime.GOOS == "arm" {
-		_, err := os.Stat(PiTroubleshootFlagPath)
-		return err == nil
-	}
-
-	_, err := os.Stat(path.Join(GetProjectRoot(), AMDTroubleshootFlagPath))
-	return err == nil
 }
 
 func DumpSettingsInfo() {
@@ -115,8 +103,8 @@ func mustLoadAppSettings() {
 }
 
 func loadRawSettingsFile() ([]byte, error) {
-	if runtime.GOOS == "arm" {
-		if _, err := os.Stat(PiBootAppSettingsPath); err != nil {
+	if runtime.GOARCH == "arm" {
+		if _, err := os.Stat(PiBootAppSettingsPath); err == nil {
 			fmt.Println("loading appsettings from boot partition")
 			return ioutil.ReadFile(PiBootAppSettingsPath)
 		}
@@ -139,7 +127,7 @@ func logErrorsAndPanic(errors map[string]string) {
 
 	var filePath string
 
-	if runtime.GOOS == "arm" {
+	if runtime.GOARCH == "arm" {
 		filePath = PiBootPanicErrorPath
 	} else {
 		filePath = path.Join(GetProjectRoot(), "panic.log")

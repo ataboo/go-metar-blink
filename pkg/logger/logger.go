@@ -16,6 +16,7 @@ var (
 	infoLogger      *log.Logger
 	warningLogger   *log.Logger
 	errorLogger     *log.Logger
+	errorStdLogger  *log.Logger
 	CurrentLogLevel LogLevel = LogLevelInfo
 )
 
@@ -54,7 +55,7 @@ func ParseLogLevel(levelStr string) (LogLevel, error) {
 	switch strings.ToLower(levelStr) {
 	case "error":
 		return LogLevelError, nil
-	case "warning":
+	case "warn":
 		return LogLevelWarn, nil
 	case "info":
 		return LogLevelInfo, nil
@@ -96,6 +97,10 @@ func LogWarn(format string, v ...interface{}) {
 func LogError(format string, v ...interface{}) {
 	assertLoggersInitialized()
 	errorLogger.Output(2, fmt.Sprintf(format, v...))
+	if errorStdLogger != nil {
+		errorStdLogger.Output(2, fmt.Sprintf(format, v...))
+	}
+
 }
 
 func assertLoggersInitialized() {
@@ -124,6 +129,8 @@ func InitFileLogging(loggingDir string, baseName string, multiFile bool) {
 	}
 
 	InitLoggersToWriter(file, file)
+
+	errorStdLogger = log.New(os.Stdout, LogLevel(LogLevelError).String()+": ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func InitLoggersToWriter(stdOut io.Writer, errOut io.Writer) {

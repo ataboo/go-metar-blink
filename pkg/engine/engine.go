@@ -17,20 +17,21 @@ type MetarMap interface {
 }
 
 type Engine struct {
-	repo         *stationrepo.StationRepo
-	stations     map[string]*stationrepo.Station
-	frameTicker  *time.Ticker
-	fetchTicker  *time.Ticker
-	lastFrame    time.Time
-	animation    animation.Animation
-	quitChan     chan int
-	metarMap     MetarMap
-	updatePeriod time.Duration
-	fps          int
-	lock         sync.Mutex
-	colorMap     map[int]animation.Color
-	doneSubs     []chan int
-	animFactory  *metaranimation.MetarAnimationFactory
+	repo          *stationrepo.StationRepo
+	stations      map[string]*stationrepo.Station
+	frameTicker   *time.Ticker
+	fetchTicker   *time.Ticker
+	lastFrame     time.Time
+	animation     animation.Animation
+	quitChan      chan int
+	metarMap      MetarMap
+	updatePeriod  time.Duration
+	fps           int
+	lock          sync.Mutex
+	colorMap      map[int]animation.Color
+	doneSubs      []chan int
+	animFactory   *metaranimation.MetarAnimationFactory
+	blinkIPActive bool
 }
 
 func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (*Engine, error) {
@@ -51,15 +52,16 @@ func CreateEngine(repo *stationrepo.StationRepo, settings *common.AppSettings) (
 	}
 
 	e := &Engine{
-		repo:         repo,
-		stations:     stations,
-		quitChan:     make(chan int),
-		updatePeriod: time.Duration(settings.UpdatePeriodMins) * time.Minute,
-		fps:          50,
-		lock:         sync.Mutex{},
-		colorMap:     make(map[int]animation.Color),
-		doneSubs:     make([]chan int, 0),
-		animFactory:  metaranimation.CreateMetarAnimationFactory(&theme),
+		repo:          repo,
+		stations:      stations,
+		quitChan:      make(chan int),
+		updatePeriod:  time.Duration(settings.UpdatePeriodMins) * time.Minute,
+		fps:           50,
+		lock:          sync.Mutex{},
+		colorMap:      make(map[int]animation.Color),
+		doneSubs:      make([]chan int, 0),
+		animFactory:   metaranimation.CreateMetarAnimationFactory(&theme),
+		blinkIPActive: settings.FlashIPOnStart,
 	}
 
 	mMap, err := createMap(stations, theme.Brightness)
@@ -80,7 +82,7 @@ func (e *Engine) Start() error {
 	e.frameTicker = time.NewTicker(time.Second / time.Duration(e.fps))
 	e.fetchTicker = time.NewTicker(e.updatePeriod)
 
-	if common.TroubleshootingModeActive() {
+	if e.blinkIPActive {
 		e.startIPAddressBlink()
 	} else {
 		go e.fetchRoutine()

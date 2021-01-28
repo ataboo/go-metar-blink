@@ -14,11 +14,11 @@ Run `resources/build.sh` from the project root to pack a tar file in `dist`.
  
 ## Install
  
-Copy and unpack the tar on the pi and run `install.sh` to setup the service.  You will likely need to elevate permissions as this script to copies to `/usr/local`.
+Copy and unpack the tar on the pi and run `install.sh` to setup the service.  You will likely need to elevate permissions as this script copies to `/usr/local`.
 
 ## Configuration
 
-Change `/usr/local/go-metar-blink/settings.json` and restart the service `systemctl restart go-metar-blink` to apply the changes.
+If `/boot/go-metar-blink.settings.json` is present, it will override the settings in `/usr/local/go-metar-blink/settings.json`.
 
 ## Uninstall
 

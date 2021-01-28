@@ -11,3 +11,4 @@ systemctl disable go-metar-blink
 
 rm -r /usr/local/go-metar-blink || echo "Failed to delete app dir";
 rm /etc/systemd/system/go-metar-blink.service || echo "Failed to delete service";
+rm /boot/go-metar-blink.settings.example.json || "Failed to delete example settings"
